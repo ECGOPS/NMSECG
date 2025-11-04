@@ -1,0 +1,62 @@
+[
+  {
+    "id": "region-1",
+    "name": "SUBTRANSMISSION ACCRA",
+    "code": "STA"
+  },
+  {
+    "id": "region-2",
+    "name": "SUBTRANSMISSION ASHANTI",
+    "code": "STASH"
+  },
+  {
+    "id": "region-3",
+    "name": "ACCRA EAST REGION",
+    "code": "AER"
+  },
+  {
+    "id": "region-4",
+    "name": "ACCRA WEST REGION",
+    "code": "AWR"
+  },
+  {
+    "id": "region-5",
+    "name": "ASHANTI EAST REGION",
+    "code": "ASHER"
+  },
+  {
+    "id": "region-6",
+    "name": "ASHANTI WEST REGION",
+    "code": "ASHWR"
+  },
+  {
+    "id": "region-7",
+    "name": "ASHANTI SOUTH REGION",
+    "code": "ASHSR"
+  },
+  {
+    "id": "region-8",
+    "name": "CENTRAL REGION",
+    "code": "CR"
+  },
+  {
+    "id": "region-9",
+    "name": "EASTERN REGION",
+    "code": "ER"
+  },
+  {
+    "id": "region-10",
+    "name": "TEMA REGION",
+    "code": "TR"
+  },
+  {
+    "id": "region-11",
+    "name": "VOLTA REGION",
+    "code": "VR"
+  },
+  {
+    "id": "region-12",
+    "name": "WESTERN REGION",
+    "code": "WR"
+  }
+] 

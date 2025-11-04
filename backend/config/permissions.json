@@ -1,0 +1,1101 @@
+{
+  "features": {
+    "equipment_failure_reporting": {
+      "description": "Equipment Failure Reporting System",
+      "permissions": {
+        "access": {
+          "description": "Can view equipment failure reports",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "regional_engineer",
+            "ashsubt",
+            "accsubt",
+            "district_engineer",
+            "senior_technician",
+            "technician",
+            "assistant_technician",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        },
+        "create": {
+          "description": "Can create new equipment failure reports",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "regional_engineer",
+            "ashsubt",
+            "accsubt",
+            "district_engineer",
+            "senior_technician",
+            "technician",
+            "assistant_technician",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        },
+        "update": {
+          "description": "Can edit existing equipment failure reports",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "regional_engineer",
+            "ashsubt",
+            "accsubt",
+            "district_engineer",
+            "senior_technician",
+            "technician",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        },
+        "delete": {
+          "description": "Can delete equipment failure reports",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "regional_engineer",
+            "ashsubt",
+            "accsubt",
+            "district_engineer",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        }
+      }
+    },
+    "overhead_line_inspection": {
+      "description": "Overhead Line Inspection System",
+      "permissions": {
+        "access": {
+          "description": "Can view overhead line inspections",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "regional_engineer",
+            "ashsubt",
+            "accsubt",
+            "district_engineer",
+            "senior_technician",
+            "technician",
+            "assistant_technician",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        },
+        "create": {
+          "description": "Can create new overhead line inspections",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "regional_engineer",
+            "ashsubt",
+            "accsubt",
+            "district_engineer",
+            "senior_technician",
+            "technician",
+            "assistant_technician",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        },
+        "update": {
+          "description": "Can edit existing overhead line inspections",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "regional_engineer",
+            "ashsubt",
+            "accsubt",
+            "district_engineer",
+            "senior_technician",
+            "technician",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        },
+        "delete": {
+          "description": "Can delete overhead line inspections",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "regional_engineer",
+            "ashsubt",
+            "accsubt",
+            "district_engineer",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        }
+      }
+    },
+    "substation_inspection": {
+      "description": "Substation Inspection System",
+      "permissions": {
+        "access": {
+          "description": "Can view substation inspections",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "regional_engineer",
+            "ashsubt",
+            "accsubt",
+            "district_engineer",
+            "senior_technician",
+            "technician",
+            "assistant_technician",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        },
+        "create": {
+          "description": "Can create new substation inspections",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "regional_engineer",
+            "ashsubt",
+            "accsubt",
+            "district_engineer",
+            "senior_technician",
+            "technician",
+            "assistant_technician",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        },
+        "update": {
+          "description": "Can edit existing substation inspections",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "regional_engineer",
+            "ashsubt",
+            "accsubt",
+            "district_engineer",
+            "senior_technician",
+            "technician",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        },
+        "delete": {
+          "description": "Can delete substation inspections",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "regional_engineer",
+            "ashsubt",
+            "accsubt",
+            "district_engineer",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        }
+      }
+    },
+    "load_monitoring": {
+      "description": "Load Monitoring System",
+      "permissions": {
+        "access": {
+          "description": "Can view load monitoring data",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "regional_engineer",
+            "ashsubt",
+            "accsubt",
+            "district_engineer",
+            "senior_technician",
+            "technician",
+            "assistant_technician",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        },
+        "create": {
+          "description": "Can create new load monitoring records",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "regional_engineer",
+            "ashsubt",
+            "accsubt",
+            "district_engineer",
+            "senior_technician",
+            "technician",
+            "assistant_technician",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        },
+        "update": {
+          "description": "Can edit existing load monitoring records",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "regional_engineer",
+            "ashsubt",
+            "accsubt",
+            "district_engineer",
+            "senior_technician",
+            "technician",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        },
+        "delete": {
+          "description": "Can delete load monitoring records",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "regional_engineer",
+            "ashsubt",
+            "accsubt",
+            "district_engineer",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        }
+      }
+    },
+    "op5_faults": {
+      "description": "OP5 Fault Management System",
+      "permissions": {
+        "access": {
+          "description": "Can view OP5 faults",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "regional_engineer",
+            "ashsubt",
+            "accsubt",
+            "district_engineer",
+            "senior_technician",
+            "technician",
+            "assistant_technician",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        },
+        "create": {
+          "description": "Can create new OP5 faults",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "regional_engineer",
+            "ashsubt",
+            "accsubt",
+            "district_engineer",
+            "senior_technician",
+            "technician",
+            "assistant_technician",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        },
+        "update": {
+          "description": "Can edit existing OP5 faults",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "regional_engineer",
+            "ashsubt",
+            "accsubt",
+            "district_engineer",
+            "senior_technician",
+            "technician",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        },
+        "delete": {
+          "description": "Can delete OP5 faults",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "regional_engineer",
+            "ashsubt",
+            "accsubt",
+            "district_engineer",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        }
+      }
+    },
+    "chat_messages": {
+      "description": "Chat & Messaging System",
+      "permissions": {
+        "access": {
+          "description": "Can view chat messages",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "regional_engineer",
+            "ashsubt",
+            "accsubt",
+            "district_engineer",
+            "senior_technician",
+            "technician",
+            "assistant_technician",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        },
+        "create": {
+          "description": "Can send chat messages",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "regional_engineer",
+            "ashsubt",
+            "accsubt",
+            "district_engineer",
+            "senior_technician",
+            "technician",
+            "assistant_technician",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        },
+        "update": {
+          "description": "Can edit chat messages",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "regional_engineer",
+            "ashsubt",
+            "accsubt",
+            "district_engineer",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        },
+        "delete": {
+          "description": "Can delete chat messages",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        }
+      }
+    },
+    "broadcast_messages": {
+      "description": "Broadcast Message System",
+      "permissions": {
+        "access": {
+          "description": "Can view broadcast messages",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "regional_engineer",
+            "ashsubt",
+            "accsubt",
+            "district_engineer",
+            "senior_technician",
+            "technician",
+            "assistant_technician",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        },
+        "create": {
+          "description": "Can create broadcast messages",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "regional_engineer",
+            "ashsubt",
+            "accsubt",
+            "district_engineer",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        },
+        "update": {
+          "description": "Can edit broadcast messages",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "regional_engineer",
+            "ashsubt",
+            "accsubt",
+            "district_engineer",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        },
+        "delete": {
+          "description": "Can delete broadcast messages",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        }
+      }
+    },
+    "music_management": {
+      "description": "Music & Audio Management",
+      "permissions": {
+        "access": {
+          "description": "Can access music files",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "regional_engineer",
+            "ashsubt",
+            "accsubt",
+            "district_engineer",
+            "senior_technician",
+            "technician",
+            "assistant_technician",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        },
+        "create": {
+          "description": "Can upload music files",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        },
+        "update": {
+          "description": "Can edit music metadata",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        },
+        "delete": {
+          "description": "Can delete music files",
+          "roles": [
+            "system_admin",
+            "admin",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        }
+      }
+    },
+    "photo_management": {
+      "description": "Photo & Image Management",
+      "permissions": {
+        "access": {
+          "description": "Can view photos and images",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "regional_engineer",
+            "ashsubt",
+            "accsubt",
+            "district_engineer",
+            "senior_technician",
+            "technician",
+            "assistant_technician",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        },
+        "create": {
+          "description": "Can upload photos and images",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "regional_engineer",
+            "ashsubt",
+            "accsubt",
+            "district_engineer",
+            "senior_technician",
+            "technician",
+            "assistant_technician",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        },
+        "update": {
+          "description": "Can edit photo metadata",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "regional_engineer",
+            "ashsubt",
+            "accsubt",
+            "district_engineer",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        },
+        "delete": {
+          "description": "Can delete photos and images",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        }
+      }
+    },
+    "district_population": {
+      "description": "District Population Management",
+      "permissions": {
+        "access": {
+          "description": "Can view district population data",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "regional_engineer",
+            "ashsubt",
+            "accsubt",
+            "district_engineer",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        },
+        "create": {
+          "description": "Can create district population records",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "regional_engineer",
+            "ashsubt",
+            "accsubt",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        },
+        "update": {
+          "description": "Can edit district population data",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "regional_engineer",
+            "ashsubt",
+            "accsubt",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        },
+        "delete": {
+          "description": "Can delete district population records",
+          "roles": [
+            "system_admin",
+            "admin",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        }
+      }
+    },
+    "staff_management": {
+      "description": "Staff ID Management",
+      "permissions": {
+        "access": {
+          "description": "Can view staff information",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "regional_engineer",
+            "ashsubt",
+            "accsubt",
+            "district_engineer",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        },
+        "create": {
+          "description": "Can create staff records",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        },
+        "update": {
+          "description": "Can edit staff information",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        },
+        "delete": {
+          "description": "Can delete staff records",
+          "roles": [
+            "system_admin",
+            "admin",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        }
+      }
+    },
+    "security_monitoring": {
+      "description": "Security Event Monitoring",
+      "permissions": {
+        "access": {
+          "description": "Can view security events",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        },
+        "create": {
+          "description": "Can create security event records",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        },
+        "update": {
+          "description": "Can edit security events",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        },
+        "delete": {
+          "description": "Can delete security events",
+          "roles": [
+            "system_admin",
+            "admin",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        }
+      }
+    },
+    "user_management": {
+      "description": "User Management System",
+      "permissions": {
+        "access": {
+          "description": "Can view users",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        },
+        "create": {
+          "description": "Can create new users",
+          "roles": [
+            "system_admin",
+            "admin",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        },
+        "update": {
+          "description": "Can edit existing users",
+          "roles": [
+            "system_admin",
+            "admin",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        },
+        "delete": {
+          "description": "Can delete users",
+          "roles": [
+            "system_admin",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        }
+      }
+    },
+    "role_management": {
+      "description": "Role Management System",
+      "permissions": {
+        "access": {
+          "description": "Can view roles",
+          "roles": [
+            "system_admin",
+            "admin",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        },
+        "create": {
+          "description": "Can create new roles",
+          "roles": [
+            "system_admin",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        },
+        "update": {
+          "description": "Can edit existing roles",
+          "roles": [
+            "system_admin",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        },
+        "delete": {
+          "description": "Can delete roles",
+          "roles": [
+            "system_admin",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        }
+      }
+    },
+    "fault_analytics": {
+      "description": "Fault Analytics & Reporting System",
+      "permissions": {
+        "access": {
+          "description": "Can view fault analytics and reports",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "regional_engineer",
+            "ashsubt",
+            "accsubt",
+            "district_engineer",
+            "senior_technician",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        },
+        "create": {
+          "description": "Can create fault analysis reports",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "regional_engineer",
+            "ashsubt",
+            "accsubt",
+            "district_engineer",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        },
+        "update": {
+          "description": "Can edit fault analysis reports",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "regional_engineer",
+            "ashsubt",
+            "accsubt",
+            "district_engineer",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        },
+        "delete": {
+          "description": "Can delete fault analysis reports",
+          "roles": [
+            "system_admin",
+            "admin",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        }
+      }
+    },
+    "control_system_analytics": {
+      "description": "Control System Analytics & Performance",
+      "permissions": {
+        "access": {
+          "description": "Can view control system analytics",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "regional_engineer",
+            "ashsubt",
+            "accsubt",
+            "district_engineer",
+            "senior_technician",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        },
+        "create": {
+          "description": "Can create control system reports",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "regional_engineer",
+            "ashsubt",
+            "accsubt",
+            "district_engineer",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        },
+        "update": {
+          "description": "Can edit control system reports",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "regional_engineer",
+            "ashsubt",
+            "accsubt",
+            "district_engineer",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        },
+        "delete": {
+          "description": "Can delete control system reports",
+          "roles": [
+            "system_admin",
+            "admin",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        }
+      }
+    },
+    "substation_status": {
+      "description": "Substation Status Inspection System",
+      "permissions": {
+        "access": {
+          "description": "Can view substation status inspections",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "regional_engineer",
+            "ashsubt",
+            "accsubt",
+            "district_engineer",
+            "senior_technician",
+            "technician",
+            "assistant_technician",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        },
+        "create": {
+          "description": "Can create new substation status inspections",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "regional_engineer",
+            "ashsubt",
+            "accsubt",
+            "district_engineer",
+            "senior_technician",
+            "technician",
+            "assistant_technician",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        },
+        "update": {
+          "description": "Can edit existing substation status inspections",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "regional_engineer",
+            "ashsubt",
+            "accsubt",
+            "district_engineer",
+            "senior_technician",
+            "technician",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        },
+        "delete": {
+          "description": "Can delete substation status inspections",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "regional_engineer",
+            "ashsubt",
+            "accsubt",
+            "district_engineer",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        }
+      }
+    },
+    "filter_controls": {
+      "description": "Filter Control System for Analytics and Data Views",
+      "permissions": {
+        "change_region_filter": {
+          "description": "Can change region filter in analytics and data views",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        },
+        "change_district_filter": {
+          "description": "Can change district filter in analytics and data views",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "regional_engineer",
+            "ashsubt",
+            "accsubt",
+            "project_engineer",
+            "regional_general_manager",
+            "regional_general_manager"
+          ]
+        },
+        "view_all_regions": {
+          "description": "Can view data from all regions",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "project_engineer",
+            "regional_general_manager"
+          ]
+        },
+        "view_all_districts": {
+          "description": "Can view data from all districts",
+          "roles": [
+            "system_admin",
+            "admin",
+            "global_engineer",
+            "regional_engineer",
+            "ashsubt",
+            "accsubt",
+            "project_engineer",
+            "regional_general_manager",
+            "regional_general_manager"
+          ]
+        }
+      }
+    }
+  },
+  "roles": {
+    "system_admin": {
+      "description": "System Administrator - Full access to all features",
+      "priority": 10
+    },
+    "admin": {
+      "description": "Administrator - Full access to all features",
+      "priority": 9
+    },
+    "global_engineer": {
+      "description": "Global Engineer - Access to all regions and districts",
+      "priority": 8
+    },
+    "regional_engineer": {
+      "description": "Regional Engineer - Access to specific region",
+      "priority": 7
+    },
+    "ashsubt": {
+      "description": "Ashanti Subtransmission Engineer - Access to Ashanti regions",
+      "priority": 7
+    },
+    "accsubt": {
+      "description": "Accra Subtransmission Engineer - Access to Accra regions",
+      "priority": 7
+    },
+    "district_engineer": {
+      "description": "District Engineer - Access to specific district",
+      "priority": 6
+    },
+    "senior_technician": {
+      "description": "Senior Technician - Limited access within district",
+      "priority": 5
+    },
+    "technician": {
+      "description": "Technician - Limited access within district",
+      "priority": 4
+    },
+    "assistant_technician": {
+      "description": "Assistant Technician - Limited access within district",
+      "priority": 3
+    },
+    "supervisor": {
+      "description": "Supervisor - View-only access",
+      "priority": 2
+    },
+    "operator": {
+      "description": "Operator - Basic access",
+      "priority": 1
+    },
+    "viewer": {
+      "description": "Viewer - Read-only access",
+      "priority": 0
+    }
+  }
+}

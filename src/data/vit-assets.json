@@ -1,0 +1,24 @@
+[
+  {
+    "id": "asset-1",
+    "regionId": "region-1",
+    "districtId": "district-1",
+    "substationNumber": "SS-001",
+    "substationName": "Accra Main Substation",
+    "voltageLevel": "33kV",
+    "status": "OPERATIONAL",
+    "lastInspectionDate": "2024-03-15T00:00:00Z",
+    "nextInspectionDate": "2024-04-15T00:00:00Z"
+  },
+  {
+    "id": "asset-2",
+    "regionId": "region-2",
+    "districtId": "district-2",
+    "substationNumber": "SS-002",
+    "substationName": "Kumasi Central Substation",
+    "voltageLevel": "11kV",
+    "status": "MAINTENANCE_REQUIRED",
+    "lastInspectionDate": "2024-03-10T00:00:00Z",
+    "nextInspectionDate": "2024-04-10T00:00:00Z"
+  }
+]

@@ -1,0 +1,5 @@
+[33m1945b7a[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m)[m Update security assessment response with accurate validation examples and test coverage
+[33m83e3846[m[33m ([m[1;31mgithub/master[m[33m)[m feat: Implement comprehensive input sanitization across all forms
+[33m49801c1[m feat: Implement photo functionality for Substation Status Inspection - Add PhotoCapture and PhotoDisplay components - Implement conditional photo capture for oil leakage and name plate - Add section-specific photo storage for transformer, fuse, and earthing conditions - Update form to show existing photos in edit mode - Change Fuse Type to Fuse Status with intact option - Maintain backward compatibility with existing photo functionality
+[33me5079e6[m Fix reset filters functionality in UsersList component - Add search term clearing to resetFilters function
+[33m1287d81[m Fix: Add district_engineer delete permission to equipment failure reports backend API

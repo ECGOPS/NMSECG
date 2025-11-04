@@ -1,0 +1,602 @@
+[
+  {
+    "id": "district-1",
+    "name": "SUBSTATION MAINTENANCE",
+    "regionId": "region-1",
+    "code": "STA-SM"
+  },
+  {
+    "id": "district-2",
+    "name": "CONTROL OPERATIONS",
+    "regionId": "region-1",
+    "code": "STA-CO"
+  },
+  {
+    "id": "district-3",
+    "name": "NETWORK MAINTENANCE",
+    "regionId": "region-1",
+    "code": "STA-NM"
+  },
+  {
+    "id": "district-4",
+    "name": "PROTECTION MAINTENANCE",
+    "regionId": "region-1",
+    "code": "STA-PM"
+  },
+  {
+    "id": "district-5",
+    "name": "SUBSTATION MAINTENANCE",
+    "regionId": "region-2",
+    "code": "STASH-SM"
+  },
+  {
+    "id": "district-6",
+    "name": "CONTROL OPERATIONS",
+    "regionId": "region-2",
+    "code": "STASH-CO"
+  },
+  {
+    "id": "district-7",
+    "name": "NETWORK MAINTENANCE",
+    "regionId": "region-2",
+    "code": "STASH-NM"
+  },
+  {
+    "id": "district-8",
+    "name": "PROTECTION MAINTENANCE",
+    "regionId": "region-2",
+    "code": "STASH-PM"
+  },
+  {
+    "id": "district-9",
+    "name": "ADENTA",
+    "regionId": "region-3",
+    "code": "AER-AD"
+  },
+  {
+    "id": "district-10",
+    "name": "DODOWA",
+    "regionId": "region-3",
+    "code": "AER-DD"
+  },
+  {
+    "id": "district-11",
+    "name": "KWABENYA",
+    "regionId": "region-3",
+    "code": "AER-KW"
+  },
+  {
+    "id": "district-12",
+    "name": "LEGON",
+    "regionId": "region-3",
+    "code": "AER-LE"
+  },
+  {
+    "id": "district-13",
+    "name": "MAKOLA",
+    "regionId": "region-3",
+    "code": "AER-MA"
+  },
+  {
+    "id": "district-14",
+    "name": "AKWAPIM MAMPONG",
+    "regionId": "region-3",
+    "code": "AER-AM"
+  },
+  {
+    "id": "district-15",
+    "name": "ROMAN RIDGE",
+    "regionId": "region-3",
+    "code": "AER-RR"
+  },
+  {
+    "id": "district-16",
+    "name": "TESHIE",
+    "regionId": "region-3",
+    "code": "AER-TE"
+  },
+  {
+    "id": "district-17",
+    "name": "ABLEKUMA",
+    "regionId": "region-4",
+    "code": "AWR-AB"
+  },
+  {
+    "id": "district-18",
+    "name": "ACHIMOTA",
+    "regionId": "region-4",
+    "code": "AWR-AC"
+  },
+  {
+    "id": "district-19",
+    "name": "AMASAMAN",
+    "regionId": "region-4",
+    "code": "AWR-AM"
+  },
+  {
+    "id": "district-20",
+    "name": "BORTIANOR",
+    "regionId": "region-4",
+    "code": "AWR-BO"
+  },
+  {
+    "id": "district-21",
+    "name": "DANSOMAN",
+    "regionId": "region-4",
+    "code": "AWR-DA"
+  },
+  {
+    "id": "district-22",
+    "name": "KANESHIE",
+    "regionId": "region-4",
+    "code": "AWR-KA"
+  },
+  {
+    "id": "district-23",
+    "name": "KORLE-BU",
+    "regionId": "region-4",
+    "code": "AWR-KB"
+  },
+  {
+    "id": "district-24",
+    "name": "NSAWAM",
+    "regionId": "region-4",
+    "code": "AWR-NS"
+  },
+  {
+    "id": "district-25",
+    "name": "AYIGYA",
+    "regionId": "region-5",
+    "code": "ASHER-AY"
+  },
+  {
+    "id": "district-26",
+    "name": "EFFIDUASE",
+    "regionId": "region-5",
+    "code": "ASHER-EF"
+  },
+  {
+    "id": "district-27",
+    "name": "EJISU",
+    "regionId": "region-5",
+    "code": "ASHER-EJ"
+  },
+  {
+    "id": "district-28",
+    "name": "KONONGO",
+    "regionId": "region-5",
+    "code": "ASHER-KO"
+  },
+  {
+    "id": "district-29",
+    "name": "KWABRE",
+    "regionId": "region-5",
+    "code": "ASHER-KW"
+  },
+  {
+    "id": "district-30",
+    "name": "MAMPONG",
+    "regionId": "region-5",
+    "code": "ASHER-MA"
+  },
+  {
+    "id": "district-31",
+    "name": "MANHYIA",
+    "regionId": "region-5",
+    "code": "ASHER-MH"
+  },
+  {
+    "id": "district-32",
+    "name": "ABUAKWA",
+    "regionId": "region-6",
+    "code": "ASHWR-AB"
+  },
+  {
+    "id": "district-33",
+    "name": "ADUM",
+    "regionId": "region-6",
+    "code": "ASHWR-AD"
+  },
+  {
+    "id": "district-34",
+    "name": "AHINSAN",
+    "regionId": "region-6",
+    "code": "ASHWR-AH"
+  },
+  {
+    "id": "district-35",
+    "name": "BIBIANI",
+    "regionId": "region-6",
+    "code": "ASHWR-BI"
+  },
+  {
+    "id": "district-36",
+    "name": "DANYAME",
+    "regionId": "region-6",
+    "code": "ASHWR-DA"
+  },
+  {
+    "id": "district-37",
+    "name": "KOKOBEN",
+    "regionId": "region-6",
+    "code": "ASHWR-KO"
+  },
+  {
+    "id": "district-38",
+    "name": "SUAME",
+    "regionId": "region-6",
+    "code": "ASHWR-SU"
+  },
+  {
+    "id": "district-39",
+    "name": "OFFINSO",
+    "regionId": "region-6",
+    "code": "ASHWR-OF"
+  },
+  {
+    "id": "district-40",
+    "name": "ASOKWA",
+    "regionId": "region-7",
+    "code": "ASHSR-AS"
+  },
+  {
+    "id": "district-41",
+    "name": "BEKWAI",
+    "regionId": "region-7",
+    "code": "ASHSR-BE"
+  },
+  {
+    "id": "district-42",
+    "name": "DUNKWA",
+    "regionId": "region-7",
+    "code": "ASHSR-DU"
+  },
+  {
+    "id": "district-43",
+    "name": "MANSO NKWANTA",
+    "regionId": "region-7",
+    "code": "ASHSR-MN"
+  },
+  {
+    "id": "district-44",
+    "name": "NEW EDUBIASE",
+    "regionId": "region-7",
+    "code": "ASHSR-NE"
+  },
+  {
+    "id": "district-45",
+    "name": "OBUASI",
+    "regionId": "region-7",
+    "code": "ASHSR-OB"
+  },
+  {
+    "id": "district-46",
+    "name": "AGONA SWEDRU",
+    "regionId": "region-8",
+    "code": "CR-AS"
+  },
+  {
+    "id": "district-47",
+    "name": "AJUMAKO",
+    "regionId": "region-8",
+    "code": "CR-AJ"
+  },
+  {
+    "id": "district-48",
+    "name": "ASSIN FOSO",
+    "regionId": "region-8",
+    "code": "CR-AF"
+  },
+  {
+    "id": "district-49",
+    "name": "BREMAN ASIKUMA",
+    "regionId": "region-8",
+    "code": "CR-BA"
+  },
+  {
+    "id": "district-50",
+    "name": "CAPE COAST",
+    "regionId": "region-8",
+    "code": "CR-CC"
+  },
+  {
+    "id": "district-51",
+    "name": "KASOA NORTH",
+    "regionId": "region-8",
+    "code": "CR-KN"
+  },
+  {
+    "id": "district-52",
+    "name": "KASOA SOUTH",
+    "regionId": "region-8",
+    "code": "CR-KS"
+  },
+  {
+    "id": "district-53",
+    "name": "SALTPOND",
+    "regionId": "region-8",
+    "code": "CR-SA"
+  },
+  {
+    "id": "district-54",
+    "name": "TWIFU PRASO",
+    "regionId": "region-8",
+    "code": "CR-TP"
+  },
+  {
+    "id": "district-55",
+    "name": "WINNEBA",
+    "regionId": "region-8",
+    "code": "CR-WI"
+  },
+  {
+    "id": "district-56",
+    "name": "AKIM ODA",
+    "regionId": "region-9",
+    "code": "ER-AO"
+  },
+  {
+    "id": "district-57",
+    "name": "AKIM TAFO",
+    "regionId": "region-9",
+    "code": "ER-AT"
+  },
+  {
+    "id": "district-58",
+    "name": "AKWATIA",
+    "regionId": "region-9",
+    "code": "ER-AK"
+  },
+  {
+    "id": "district-59",
+    "name": "ASAMANKESE",
+    "regionId": "region-9",
+    "code": "ER-AS"
+  },
+  {
+    "id": "district-60",
+    "name": "BEGORO",
+    "regionId": "region-9",
+    "code": "ER-BE"
+  },
+  {
+    "id": "district-61",
+    "name": "DONKORKROM",
+    "regionId": "region-9",
+    "code": "ER-DO"
+  },
+  {
+    "id": "district-62",
+    "name": "KADE",
+    "regionId": "region-9",
+    "code": "ER-KA"
+  },
+  {
+    "id": "district-63",
+    "name": "KIBI",
+    "regionId": "region-9",
+    "code": "ER-KI"
+  },
+  {
+    "id": "district-64",
+    "name": "KOFORIDUA",
+    "regionId": "region-9",
+    "code": "ER-KO"
+  },
+  {
+    "id": "district-65",
+    "name": "MPRAESO",
+    "regionId": "region-9",
+    "code": "ER-MP"
+  },
+  {
+    "id": "district-66",
+    "name": "NEW ABIREM",
+    "regionId": "region-9",
+    "code": "ER-NA"
+  },
+  {
+    "id": "district-67",
+    "name": "NKAWKAW",
+    "regionId": "region-9",
+    "code": "ER-NK"
+  },
+  {
+    "id": "district-68",
+    "name": "SUHUM",
+    "regionId": "region-9",
+    "code": "ER-SU"
+  },
+  {
+    "id": "district-69",
+    "name": "ASESEWA",
+    "regionId": "region-9",
+    "code": "ER-AS"
+  },
+  {
+    "id": "district-70",
+    "name": "ADA",
+    "regionId": "region-10",
+    "code": "TR-AD"
+  },
+  {
+    "id": "district-71",
+    "name": "AFIENYA",
+    "regionId": "region-10",
+    "code": "TR-AF"
+  },
+  {
+    "id": "district-72",
+    "name": "ASHAIMAN",
+    "regionId": "region-10",
+    "code": "TR-AS"
+  },
+  {
+    "id": "district-73",
+    "name": "JUAPONG",
+    "regionId": "region-10",
+    "code": "TR-JU"
+  },
+  {
+    "id": "district-74",
+    "name": "KROBO",
+    "regionId": "region-10",
+    "code": "TR-KR"
+  },
+  {
+    "id": "district-75",
+    "name": "NUNGUA",
+    "regionId": "region-10",
+    "code": "TR-NU"
+  },
+  {
+    "id": "district-76",
+    "name": "PRAMPRAM",
+    "regionId": "region-10",
+    "code": "TR-PR"
+  },
+  {
+    "id": "district-77",
+    "name": "TEMA NORTH",
+    "regionId": "region-10",
+    "code": "TR-TN"
+  },
+  {
+    "id": "district-78",
+    "name": "TEMA SOUTH",
+    "regionId": "region-10",
+    "code": "TR-TS"
+  },
+  {
+    "id": "district-79",
+    "name": "AKATSI",
+    "regionId": "region-11",
+    "code": "VR-AK"
+  },
+  {
+    "id": "district-80",
+    "name": "DAMBAI",
+    "regionId": "region-11",
+    "code": "VR-DA"
+  },
+  {
+    "id": "district-81",
+    "name": "DENU",
+    "regionId": "region-11",
+    "code": "VR-DE"
+  },
+  {
+    "id": "district-82",
+    "name": "HO",
+    "regionId": "region-11",
+    "code": "VR-HO"
+  },
+  {
+    "id": "district-83",
+    "name": "HOHOE",
+    "regionId": "region-11",
+    "code": "VR-HH"
+  },
+  {
+    "id": "district-84",
+    "name": "JASIKAN",
+    "regionId": "region-11",
+    "code": "VR-JA"
+  },
+  {
+    "id": "district-85",
+    "name": "KETA",
+    "regionId": "region-11",
+    "code": "VR-KE"
+  },
+  {
+    "id": "district-86",
+    "name": "KPANDU",
+    "regionId": "region-11",
+    "code": "VR-KP"
+  },
+  {
+    "id": "district-87",
+    "name": "KPEVE",
+    "regionId": "region-11",
+    "code": "VR-KV"
+  },
+  {
+    "id": "district-88",
+    "name": "NKWANTA",
+    "regionId": "region-11",
+    "code": "VR-NK"
+  },
+  {
+    "id": "district-89",
+    "name": "SOGAKOPE",
+    "regionId": "region-11",
+    "code": "VR-SO"
+  },
+  {
+    "id": "district-90",
+    "name": "AGONA",
+    "regionId": "region-12",
+    "code": "WR-AG"
+  },
+  {
+    "id": "district-91",
+    "name": "ASANKRAGUA",
+    "regionId": "region-12",
+    "code": "WR-AS"
+  },
+  {
+    "id": "district-92",
+    "name": "AXIM",
+    "regionId": "region-12",
+    "code": "WR-AX"
+  },
+  {
+    "id": "district-93",
+    "name": "BOGOSO",
+    "regionId": "region-12",
+    "code": "WR-BO"
+  },
+  {
+    "id": "district-94",
+    "name": "ENCHI",
+    "regionId": "region-12",
+    "code": "WR-EN"
+  },
+  {
+    "id": "district-95",
+    "name": "HALF ASSINI",
+    "regionId": "region-12",
+    "code": "WR-HA"
+  },
+  {
+    "id": "district-96",
+    "name": "SEFWI WIAWSO",
+    "regionId": "region-12",
+    "code": "WR-SW"
+  },
+  {
+    "id": "district-97",
+    "name": "JUABESO",
+    "regionId": "region-12",
+    "code": "WR-JU"
+  },
+  {
+    "id": "district-98",
+    "name": "SEKONDI",
+    "regionId": "region-12",
+    "code": "WR-SE"
+  },
+  {
+    "id": "district-99",
+    "name": "TAKORADI",
+    "regionId": "region-12",
+    "code": "WR-TA"
+  },
+  {
+    "id": "district-100",
+    "name": "TARKWA",
+    "regionId": "region-12",
+    "code": "WR-TK"
+  }
+] 

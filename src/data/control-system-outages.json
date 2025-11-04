@@ -1,0 +1,44 @@
+[
+  {
+    "id": "outage-1",
+    "regionId": "region-1",
+    "districtId": "district-1",
+    "faultType": "SCADA_FAILURE",
+    "substationNumber": "SS-001",
+    "occurrenceDate": "2024-03-20T08:00:00Z",
+    "restorationDate": "2024-03-20T12:00:00Z",
+    "description": "SCADA system communication failure",
+    "impactDescription": "Loss of remote monitoring and control capabilities",
+    "status": "resolved",
+    "loadMW": 25.5,
+    "unservedEnergyMWh": 102.0,
+    "customersAffected": {
+      "rural": 3000,
+      "urban": 15000,
+      "metro": 50000
+    },
+    "createdBy": "System",
+    "createdAt": "2024-03-20T08:15:00Z"
+  },
+  {
+    "id": "outage-2",
+    "regionId": "region-2",
+    "districtId": "district-2",
+    "faultType": "RTU_FAILURE",
+    "substationNumber": "SS-002",
+    "occurrenceDate": "2024-03-21T09:00:00Z",
+    "restorationDate": null,
+    "description": "RTU hardware malfunction",
+    "impactDescription": "Unable to receive real-time data from field devices",
+    "status": "active",
+    "loadMW": 18.7,
+    "unservedEnergyMWh": 74.8,
+    "customersAffected": {
+      "rural": 5000,
+      "urban": 20000,
+      "metro": 75000
+    },
+    "createdBy": "System",
+    "createdAt": "2024-03-21T09:30:00Z"
+  }
+]

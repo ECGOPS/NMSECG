@@ -1,0 +1,3 @@
+// export const logSecurityEvent = functions.https.onCall(async (request: functions.https.CallableRequest<SecurityEventData>) => {
+//   // ... implementation ...
+// }); 

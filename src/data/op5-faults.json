@@ -1,0 +1,48 @@
+[
+  {
+    "id": "fault-1",
+    "regionId": "region-1",
+    "districtId": "district-1",
+    "faultType": "PROTECTION_TRIP",
+    "substationNumber": "SS-001",
+    "faultDescription": "Protection relay trip due to overcurrent",
+    "outrageDuration": 120,
+    "mttr": 60,
+    "status": "resolved",
+    "affectedPopulation": {
+      "rural": 5000,
+      "urban": 25000,
+      "metro": 100000
+    },
+    "reliabilityIndices": {
+      "saidi": 0.02,
+      "saifi": 0.01,
+      "caidi": 2.0
+    },
+    "createdBy": "System",
+    "createdAt": "2024-03-20T10:00:00Z"
+  },
+  {
+    "id": "fault-2",
+    "regionId": "region-2",
+    "districtId": "district-2",
+    "faultType": "EQUIPMENT_FAILURE",
+    "substationNumber": "SS-002",
+    "faultDescription": "Circuit breaker mechanical failure",
+    "outrageDuration": 240,
+    "mttr": 180,
+    "status": "active",
+    "affectedPopulation": {
+      "rural": 10000,
+      "urban": 35000,
+      "metro": 150000
+    },
+    "reliabilityIndices": {
+      "saidi": 0.04,
+      "saifi": 0.02,
+      "caidi": 2.0
+    },
+    "createdBy": "System",
+    "createdAt": "2024-03-21T14:30:00Z"
+  }
+]

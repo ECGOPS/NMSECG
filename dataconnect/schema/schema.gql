@@ -1,0 +1,298 @@
+# Azure Cosmos DB Schema for FaultMaster Application
+# This schema defines all the collections migrated from Firebase to Azure Cosmos DB
+
+# User table for authentication and user management
+type User @table {
+  id: String! @default(expr: "auth.uid")
+  email: String!
+  displayName: String
+  role: String! @col(dataType: "varchar(50)")
+  regionId: String
+  districtId: String
+  isActive: Boolean! @default(expr: "true")
+  createdAt: DateTime! @default(expr: "request.time")
+  updatedAt: DateTime! @default(expr: "request.time")
+  lastLoginAt: DateTime
+  permissions: [String!]
+}
+
+# Regions table for geographical organization
+type Region @table {
+  id: String!
+  name: String! @col(dataType: "varchar(100)")
+  code: String! @col(dataType: "varchar(10)")
+  createdAt: DateTime! @default(expr: "request.time")
+  updatedAt: DateTime! @default(expr: "request.time")
+}
+
+# Districts table for operational areas
+type District @table {
+  id: String!
+  name: String! @col(dataType: "varchar(100)")
+  regionId: String!
+  code: String! @col(dataType: "varchar(20)")
+  createdAt: DateTime! @default(expr: "request.time")
+  updatedAt: DateTime! @default(expr: "request.time")
+}
+
+# OP5 Faults table for fault management
+type OP5Fault @table {
+  id: String!
+  regionId: String!
+  districtId: String!
+  faultType: String! @col(dataType: "varchar(50)")
+  substationNumber: String! @col(dataType: "varchar(20)")
+  faultDescription: String! @col(dataType: "text")
+  outrageDuration: Int
+  mttr: Int
+  status: String! @col(dataType: "varchar(20)")
+  affectedPopulation: Json
+  reliabilityIndices: Json
+  createdBy: String!
+  createdAt: DateTime! @default(expr: "request.time")
+  updatedAt: DateTime! @default(expr: "request.time")
+}
+
+# Control System Outages table
+type ControlSystemOutage @table {
+  id: String!
+  regionId: String!
+  districtId: String!
+  faultType: String! @col(dataType: "varchar(50)")
+  substationNumber: String! @col(dataType: "varchar(20)")
+  occurrenceDate: DateTime!
+  restorationDate: DateTime
+  description: String! @col(dataType: "text")
+  impactDescription: String! @col(dataType: "text")
+  status: String! @col(dataType: "varchar(20)")
+  loadMW: Float
+  unservedEnergyMWh: Float
+  customersAffected: Json
+  createdBy: String!
+  createdAt: DateTime! @default(expr: "request.time")
+  updatedAt: DateTime! @default(expr: "request.time")
+}
+
+# VIT Assets table for asset management
+type VITAsset @table {
+  id: String!
+  regionId: String!
+  districtId: String!
+  substationNumber: String! @col(dataType: "varchar(20)")
+  substationName: String! @col(dataType: "varchar(100)")
+  voltageLevel: String! @col(dataType: "varchar(10)")
+  status: String! @col(dataType: "varchar(30)")
+  lastInspectionDate: DateTime
+  nextInspectionDate: DateTime
+  createdAt: DateTime! @default(expr: "request.time")
+  updatedAt: DateTime! @default(expr: "request.time")
+}
+
+# VIT Inspections table for inspection records
+type VITInspection @table {
+  id: String!
+  assetId: String!
+  date: DateTime!
+  inspectorId: String!
+  rodentTermiteEncroachment: String! @col(dataType: "varchar(10)")
+  cleanDustFree: String! @col(dataType: "varchar(10)")
+  protectionButtonEnabled: String! @col(dataType: "varchar(10)")
+  recloserButtonEnabled: String! @col(dataType: "varchar(10)")
+  groundEarthButtonEnabled: String! @col(dataType: "varchar(10)")
+  acPowerOn: String! @col(dataType: "varchar(10)")
+  batteryPowerLow: String! @col(dataType: "varchar(10)")
+  handleLockOn: String! @col(dataType: "varchar(10)")
+  remoteButtonEnabled: String! @col(dataType: "varchar(10)")
+  gasLevelLow: String! @col(dataType: "varchar(10)")
+  earthingArrangementAdequate: String! @col(dataType: "varchar(10)")
+  noFusesBlown: String! @col(dataType: "varchar(10)")
+  noDamageToBushings: String! @col(dataType: "varchar(10)")
+  noDamageToHVConnections: String! @col(dataType: "varchar(10)")
+  insulatorsClean: String! @col(dataType: "varchar(10)")
+  paintworkAdequate: String! @col(dataType: "varchar(10)")
+  ptFuseLinkIntact: String! @col(dataType: "varchar(10)")
+  noCorrosion: String! @col(dataType: "varchar(10)")
+  silicaGelCondition: String! @col(dataType: "varchar(20)")
+  correctLabelling: String! @col(dataType: "varchar(10)")
+  remarks: String! @col(dataType: "text")
+  createdAt: DateTime! @default(expr: "request.time")
+  updatedAt: DateTime! @default(expr: "request.time")
+}
+
+# Overhead Line Inspections table
+type OverheadLineInspection @table {
+  id: String!
+  regionId: String!
+  districtId: String!
+  feederName: String! @col(dataType: "varchar(50)")
+  voltageLevel: String! @col(dataType: "varchar(10)")
+  referencePole: String! @col(dataType: "varchar(20)")
+  status: String! @col(dataType: "varchar(20)")
+  latitude: Float
+  longitude: Float
+  poleCondition: Json
+  stayCondition: Json
+  crossArmCondition: Json
+  insulatorCondition: Json
+  conductorCondition: Json
+  additionalNotes: String! @col(dataType: "text")
+  images: [String!]
+  createdAt: DateTime! @default(expr: "request.time")
+  updatedAt: DateTime! @default(expr: "request.time")
+}
+
+# Load Monitoring table
+type LoadMonitoring @table {
+  id: String!
+  regionId: String!
+  districtId: String!
+  feederName: String! @col(dataType: "varchar(50)")
+  substationNumber: String! @col(dataType: "varchar(20)")
+  voltageLevel: String! @col(dataType: "varchar(10)")
+  currentLoad: Float
+  maxCapacity: Float
+  status: String! @col(dataType: "varchar(20)")
+  monitoringDate: DateTime!
+  createdBy: String!
+  createdAt: DateTime! @default(expr: "request.time")
+  updatedAt: DateTime! @default(expr: "request.time")
+}
+
+# Chat Messages table
+type ChatMessage @table {
+  id: String!
+  senderId: String!
+  senderName: String! @col(dataType: "varchar(100)")
+  message: String! @col(dataType: "text")
+  timestamp: DateTime! @default(expr: "request.time")
+  regionId: String
+  districtId: String
+  isSystemMessage: Boolean! @default(expr: "false")
+}
+
+# Broadcast Messages table
+type BroadcastMessage @table {
+  id: String!
+  title: String! @col(dataType: "varchar(200)")
+  message: String! @col(dataType: "text")
+  priority: String! @col(dataType: "varchar(20)")
+  targetRegions: [String!]
+  targetDistricts: [String!]
+  createdBy: String!
+  createdAt: DateTime! @default(expr: "request.time")
+  expiresAt: DateTime
+  isActive: Boolean! @default(expr: "true")
+}
+
+# Security Events table
+type SecurityEvent @table {
+  id: String!
+  eventType: String! @col(dataType: "varchar(50)")
+  userId: String
+  userEmail: String! @col(dataType: "varchar(100)")
+  description: String! @col(dataType: "text")
+  ipAddress: String! @col(dataType: "varchar(45)")
+  userAgent: String! @col(dataType: "text")
+  severity: String! @col(dataType: "varchar(20)")
+  timestamp: DateTime! @default(expr: "request.time")
+  resolved: Boolean! @default(expr: "false")
+  resolvedBy: String
+  resolvedAt: DateTime
+}
+
+# User Logs table
+type UserLog @table {
+  id: String!
+  userId: String!
+  action: String! @col(dataType: "varchar(100)")
+  details: Json
+  timestamp: DateTime! @default(expr: "request.time")
+  ipAddress: String! @col(dataType: "varchar(45)")
+  userAgent: String! @col(dataType: "text")
+}
+
+# Staff IDs table
+type StaffId @table {
+  id: String!
+  staffId: String! @col(dataType: "varchar(20)")
+  userId: String!
+  fullName: String! @col(dataType: "varchar(100)")
+  regionId: String!
+  districtId: String!
+  role: String! @col(dataType: "varchar(50)")
+  isActive: Boolean! @default(expr: "true")
+  createdAt: DateTime! @default(expr: "request.time")
+  updatedAt: DateTime! @default(expr: "request.time")
+}
+
+# Permissions table
+type Permission @table {
+  id: String!
+  role: String! @col(dataType: "varchar(50)")
+  resource: String! @col(dataType: "varchar(100)")
+  action: String! @col(dataType: "varchar(50)")
+  allowed: Boolean! @default(expr: "true")
+  createdAt: DateTime! @default(expr: "request.time")
+  updatedAt: DateTime! @default(expr: "request.time")
+}
+
+# Music Files table
+type MusicFile @table {
+  id: String!
+  fileName: String! @col(dataType: "varchar(200)")
+  filePath: String! @col(dataType: "varchar(500)")
+  fileSize: Int
+  duration: Int
+  isActive: Boolean! @default(expr: "true")
+  uploadedBy: String!
+  uploadedAt: DateTime! @default(expr: "request.time")
+}
+
+# SMS Logs table
+type SMSLog @table {
+  id: String!
+  recipient: String! @col(dataType: "varchar(20)")
+  message: String! @col(dataType: "text")
+  status: String! @col(dataType: "varchar(20)")
+  sentAt: DateTime! @default(expr: "request.time")
+  deliveredAt: DateTime
+  errorMessage: String! @col(dataType: "text")
+}
+
+# Feeders table
+type Feeder @table {
+  id: String!
+  name: String! @col(dataType: "varchar(100)")
+  regionId: String!
+  districtId: String!
+  voltageLevel: String! @col(dataType: "varchar(10)")
+  status: String! @col(dataType: "varchar(20)")
+  capacity: Float
+  currentLoad: Float
+  createdAt: DateTime! @default(expr: "request.time")
+  updatedAt: DateTime! @default(expr: "request.time")
+}
+
+# Devices table
+type Device @table {
+  id: String!
+  deviceId: String! @col(dataType: "varchar(50)")
+  deviceName: String! @col(dataType: "varchar(100)")
+  deviceType: String! @col(dataType: "varchar(50)")
+  regionId: String!
+  districtId: String!
+  status: String! @col(dataType: "varchar(20)")
+  lastSeen: DateTime
+  createdAt: DateTime! @default(expr: "request.time")
+  updatedAt: DateTime! @default(expr: "request.time")
+}
+
+# System Settings table
+type SystemSetting @table {
+  id: String!
+  key: String! @col(dataType: "varchar(100)")
+  value: Json
+  description: String! @col(dataType: "text")
+  updatedBy: String!
+  updatedAt: DateTime! @default(expr: "request.time")
+}

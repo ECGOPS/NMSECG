@@ -1,0 +1,98 @@
+[
+  {
+    "id": "oli-001",
+    "createdAt": "2024-03-15T10:00:00Z",
+    "updatedAt": "2024-03-15T10:00:00Z",
+    "regionId": "reg-001",
+    "districtId": "dist-001",
+    "feederName": "F1-Main",
+    "voltageLevel": "33kV",
+    "referencePole": "P001",
+    "status": "completed",
+    "latitude": 5.6037,
+    "longitude": -0.1870,
+    "poleCondition": {
+      "leaning": false,
+      "damaged": false,
+      "rotted": false,
+      "notes": "Pole in good condition"
+    },
+    "stayCondition": {
+      "loose": false,
+      "damaged": false,
+      "misaligned": false,
+      "notes": "Stay wires properly tensioned"
+    },
+    "crossArmCondition": {
+      "damaged": false,
+      "rotted": false,
+      "misaligned": false,
+      "notes": "Cross arms properly aligned"
+    },
+    "insulatorCondition": {
+      "broken": false,
+      "cracked": false,
+      "contaminated": true,
+      "notes": "Minor dust contamination, needs cleaning"
+    },
+    "conductorCondition": {
+      "broken": false,
+      "looseConnections": false,
+      "treeTouching": true,
+      "notes": "Tree branches need trimming"
+    },
+    "additionalNotes": "Overall in good condition, but requires vegetation management",
+    "images": [
+      "overhead-line-001.jpg",
+      "overhead-line-002.jpg"
+    ]
+  },
+  {
+    "id": "oli-002",
+    "createdAt": "2024-03-14T14:30:00Z",
+    "updatedAt": "2024-03-14T14:30:00Z",
+    "regionId": "reg-002",
+    "districtId": "dist-003",
+    "feederName": "F2-Branch",
+    "voltageLevel": "11kV",
+    "referencePole": "P045",
+    "status": "pending",
+    "latitude": 5.6142,
+    "longitude": -0.2052,
+    "poleCondition": {
+      "leaning": true,
+      "damaged": false,
+      "rotted": false,
+      "notes": "Pole slightly leaning, needs straightening"
+    },
+    "stayCondition": {
+      "loose": true,
+      "damaged": false,
+      "misaligned": true,
+      "notes": "Stay wires need retensioning"
+    },
+    "crossArmCondition": {
+      "damaged": false,
+      "rotted": false,
+      "misaligned": true,
+      "notes": "Minor misalignment observed"
+    },
+    "insulatorCondition": {
+      "broken": false,
+      "cracked": false,
+      "contaminated": false,
+      "notes": "Insulators in good condition"
+    },
+    "conductorCondition": {
+      "broken": false,
+      "looseConnections": true,
+      "treeTouching": false,
+      "notes": "Some connections need tightening"
+    },
+    "additionalNotes": "Maintenance required for pole alignment and stay wire tension",
+    "images": [
+      "overhead-line-003.jpg",
+      "overhead-line-004.jpg"
+    ]
+  }
+] 

@@ -1,0 +1,58 @@
+name: Sync Demo Repository
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config --global user.name 'GitHub Actions'
+          git config --global user.email 'actions@github.com'
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+
+      - name: Add demo remote
+        run: |
+          git remote add demo git@github.com:ECGOPS/OMSDEMO.git
+
+      - name: Create temporary branch
+        run: |
+          git checkout -b temp-demo-sync
+
+      - name: Remove sensitive files
+        run: |
+          # Remove files if they exist
+          for file in .env .env.local .env.development .env.production .env.demo serviceAccountKey.json firebase-config.json; do
+            if [ -f "$file" ]; then
+              git rm -f "$file"
+            fi
+          done
+
+      - name: Commit changes
+        run: |
+          git add .
+          git commit -m "Sync with main repository" || echo "No changes to commit"
+
+      - name: Push to demo
+        run: |
+          git push demo temp-demo-sync:main --force
+
+      - name: Cleanup
+        run: |
+          git checkout main
+          git branch -D temp-demo-sync 

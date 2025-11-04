@@ -1,0 +1,58 @@
+headersOrigin = "config"
+redirectsOrigin = "config"
+plugins = []
+
+[functions]
+
+[functions."*"]
+
+[build]
+publish = "C:\\Users\\Administrator\\Documents\\faultmaster-gh-101\\dist"
+publishOrigin = "config"
+commandOrigin = "config"
+command = "npm run build"
+base = "C:\\Users\\Administrator\\Documents\\faultmaster-gh-101"
+
+[build.environment]
+NODE_VERSION = "18"
+NPM_FLAGS = "--no-audit --no-fund"
+
+[build.processing]
+
+[build.processing.css]
+
+[build.processing.html]
+
+[build.processing.images]
+
+[build.processing.js]
+
+[build.services]
+
+[[headers]]
+for = "/*"
+
+[headers.values]
+X-Frame-Options = "DENY"
+X-Content-Type-Options = "nosniff"
+X-XSS-Protection = "1; mode=block"
+Referrer-Policy = "strict-origin-when-cross-origin"
+Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
+Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; connect-src 'self' https: wss:; font-src 'self' data: https:; object-src 'none'; media-src 'self'; frame-src 'none'; worker-src 'self' blob:; manifest-src 'self'; prefetch-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests; report-uri /api/csp-report; report-to csp-endpoint"
+Cross-Origin-Embedder-Policy = "require-corp"
+Cross-Origin-Opener-Policy = "same-origin"
+Cross-Origin-Resource-Policy = "same-site"
+Report-To = "{'group':'csp-endpoint', 'max_age':10886400, 'endpoints':[{'url':'/api/csp-report'}]}"
+
+[[redirects]]
+from = "/*"
+to = "/index.html"
+status = 200.0
+force = false
+
+[redirects.query]
+
+[redirects.conditions]
+
+[redirects.headers]
