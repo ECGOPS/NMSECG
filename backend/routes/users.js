@@ -15,44 +15,75 @@ const container = database.container(containerId);
 router.get('/me', requireAuth(), async (req, res) => {
   try {
     const userId = req.userId;
+    const authPayload = req.auth?.payload;
+    
+    console.log(`[ME] ========================================`);
+    console.log(`[ME] GET /api/users/me called`);
+    console.log(`[ME] req.userId: ${userId}`);
+    console.log(`[ME] req.userRole: ${req.userRole}`);
+    console.log(`[ME] req.user: ${req.user ? JSON.stringify({ id: req.user.id, email: req.user.email, role: req.user.role }) : 'null'}`);
+    console.log(`[ME] JWT payload oid: ${authPayload?.oid}`);
+    console.log(`[ME] JWT payload sub: ${authPayload?.sub}`);
+    console.log(`[ME] JWT payload email: ${authPayload?.email}`);
+    console.log(`[ME] ========================================`);
+    
     if (!userId) {
+      console.log(`[ME] ❌ No userId found in request`);
       return res.status(401).json({ error: 'User not authenticated' });
     }
     
-    // First try to find user by JWT UID (current user ID)
-    let { resources } = await container.items.query(
-      `SELECT * FROM c WHERE c.id = "${userId}"`
-    ).fetchAll();
+    console.log(`[ME] Looking for user with userId: ${userId}`);
     
-    if (resources.length === 0) {
-      // If not found by JWT UID, try to find by email (for existing users with different UID)
-      const userEmail = req.auth?.payload?.email || req.auth?.payload?.preferred_username;
-      if (userEmail) {
-        const { resources: emailUsers } = await container.items.query(
-          `SELECT * FROM c WHERE c.email = "${userEmail}"`
-        ).fetchAll();
-        
-        if (emailUsers.length > 0) {
-          // Found existing user by email - return the existing user data
-          console.log(`[ME] Found user by email: ${emailUsers[0].email} (role: ${emailUsers[0].role})`);
-          return res.json(emailUsers[0]);
-        }
-      }
-      
-      // If still not found, try to find by UID (for users that were updated by auth middleware)
-      const { resources: uidUsers } = await container.items.query(
-        `SELECT * FROM c WHERE c.uid = "${userId}"`
-      ).fetchAll();
-      
-      if (uidUsers.length > 0) {
-        console.log(`[ME] Found user by UID: ${uidUsers[0].email} (role: ${uidUsers[0].role})`);
-        return res.json(uidUsers[0]);
-      }
-      
-      return res.status(404).json({ error: 'User not found' });
+    // First try to find user by UID (most reliable - matches Azure AD oid)
+    console.log(`[ME] Step 1: Querying by UID: ${userId}`);
+    let { resources } = await container.items.query({
+      query: 'SELECT * FROM c WHERE c.uid = @uid',
+      parameters: [{ name: '@uid', value: userId }]
+    }).fetchAll();
+    
+    console.log(`[ME] Step 1 result: Found ${resources.length} user(s) by UID`);
+    
+    if (resources.length > 0) {
+      console.log(`[ME] ✅ Found user by UID: ${resources[0].email} (role: ${resources[0].role}, status: ${resources[0].status})`);
+      return res.json(resources[0]);
     }
     
-    res.json(resources[0]);
+    // If not found by UID, try to find by document ID
+    console.log(`[ME] Step 2: Querying by document ID: ${userId}`);
+    const { resources: idUsers } = await container.items.query({
+      query: 'SELECT * FROM c WHERE c.id = @id',
+      parameters: [{ name: '@id', value: userId }]
+    }).fetchAll();
+    
+    console.log(`[ME] Step 2 result: Found ${idUsers.length} user(s) by ID`);
+    
+    if (idUsers.length > 0) {
+      console.log(`[ME] ✅ Found user by ID: ${idUsers[0].email} (role: ${idUsers[0].role}, status: ${idUsers[0].status})`);
+      return res.json(idUsers[0]);
+      }
+      
+    // If still not found, try to find by email (for existing users with different UID)
+    const userEmail = authPayload?.email || authPayload?.preferred_username;
+    if (userEmail) {
+      console.log(`[ME] Step 3: Querying by email: ${userEmail}`);
+      // Use case-insensitive email matching (same as auth.js)
+      const { resources: emailUsers } = await container.items.query({
+        query: 'SELECT * FROM c WHERE LOWER(c.email) = @email',
+        parameters: [{ name: '@email', value: userEmail.toLowerCase() }]
+      }).fetchAll();
+      
+      console.log(`[ME] Step 3 result: Found ${emailUsers.length} user(s) by email`);
+      
+      if (emailUsers.length > 0) {
+        // Found existing user by email - return the existing user data
+        console.log(`[ME] ✅ Found user by email: ${emailUsers[0].email} (role: ${emailUsers[0].role}, status: ${emailUsers[0].status})`);
+        return res.json(emailUsers[0]);
+      }
+    }
+    
+    console.log(`[ME] ❌ User not found with userId: ${userId}, email: ${userEmail || 'N/A'}`);
+    console.log(`[ME] All lookup methods failed`);
+      return res.status(404).json({ error: 'User not found' });
   } catch (err) {
     console.error('Error in /me endpoint:', err);
     res.status(500).json({ error: err.message });

@@ -109,6 +109,9 @@ deploy_key
 *.db
 *.sqlite
 
+# Database exports (too large for GitHub)
+database-export/
+
 # Backup files
 *.bak
 *.backup

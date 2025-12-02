@@ -30,12 +30,56 @@ const containerName = 'uploads';
 const SETTINGS_CONTAINER = 'settings';
 const LOGIN_BACKGROUND_KEY = 'loginBackground';
 
+// Handle OPTIONS preflight for login-background route
+router.options('/login-background', (req, res) => {
+  const origin = req.headers.origin;
+  const allowedOrigins = [
+    'http://localhost:5173',
+    'https://localhost:5173',
+    'http://localhost:3000',
+    'https://localhost:3000',
+    'https://heroic-boba-b98a65.netlify.app',
+    'http://proppvlap01.ecggh.com'
+  ];
+  
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Max-Age', '86400'); // 24 hours
+  res.status(200).end();
+});
+
 /**
  * Get login background settings
  * GET /api/settings/login-background
  */
 router.get('/login-background', async (req, res) => {
   try {
+    // Set CORS headers explicitly for this public endpoint
+    const origin = req.headers.origin;
+    const allowedOrigins = [
+      'http://localhost:5173',
+      'https://localhost:5173',
+      'http://localhost:3000',
+      'https://localhost:3000',
+      'https://heroic-boba-b98a65.netlify.app',
+      'http://proppvlap01.ecggh.com'
+    ];
+    
+    if (origin && allowedOrigins.includes(origin)) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+    } else {
+      res.setHeader('Access-Control-Allow-Origin', '*');
+    }
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    
     // Ensure container exists before using it
     await ensureContainerExists(SETTINGS_CONTAINER);
     const container = getContainer(SETTINGS_CONTAINER);

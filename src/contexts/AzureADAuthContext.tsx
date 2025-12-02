@@ -235,13 +235,66 @@ export const AzureADAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
         }
         
         // Create initial user object from Azure AD data
-        const azureUser: User = {
+        // Fetch actual user data from backend FIRST to get proper role and status
+        // This prevents the user from being stuck in pending state
+        let finalUser: User;
+        try {
+          console.log('🔍 [Auth] Fetching actual user data from backend...');
+          console.log('🔍 [Auth] User UID from Azure AD:', account.localAccountId);
+          console.log('🔍 [Auth] User email from Azure AD:', payload.email || account.username);
+          
+          try {
+            const backendUser = await azureADApiService.getCurrentUser();
+            console.log('✅ [Auth] Backend user data received:', backendUser);
+            console.log('✅ [Auth] Backend user role:', backendUser?.role);
+            console.log('✅ [Auth] Backend user status:', backendUser?.status);
+            console.log('✅ [Auth] Backend user ID:', backendUser?.id);
+            console.log('✅ [Auth] Backend user UID:', backendUser?.uid);
+            
+            if (!backendUser || !backendUser.id) {
+              throw new Error('Backend returned invalid user data');
+            }
+          
+            // Use backend data - it should have all the correct fields
+            finalUser = {
+              id: backendUser.id,
+              uid: backendUser.uid || account.localAccountId || account.homeAccountId,
+              email: backendUser.email || payload.email || account.username,
+              name: backendUser.name || payload.name || payload.preferred_username || account.username,
+              displayName: backendUser.displayName || payload.name || payload.preferred_username || account.username,
+              role: backendUser.role || 'pending',
+              status: backendUser.status || 'pre_registered',
+              region: backendUser.region || '',
+              district: backendUser.district || '',
+              staffId: backendUser.staffId || '',
+              disabled: backendUser.disabled || false,
+              createdAt: backendUser.createdAt || new Date().toISOString(),
+            };
+            console.log('✅ [Auth] Using backend user data:', finalUser);
+            console.log('✅ [Auth] Final user role:', finalUser.role);
+            console.log('✅ [Auth] Final user status:', finalUser.status);
+          } catch (apiError: any) {
+            // Re-throw to be caught by outer catch block
+            console.error('❌ [Auth] API call failed:', apiError);
+            throw apiError;
+          }
+        } catch (backendError) {
+          console.error('❌ [Auth] Error fetching user data from backend:', backendError);
+          console.error('❌ [Auth] Error details:', {
+            message: backendError?.message,
+            status: backendError?.status,
+            response: backendError?.response
+          });
+          console.log('⚠️ [Auth] Creating user from Azure AD data only (will be pending until backend is available)');
+          
+          // Fallback to Azure AD data if backend fails
+          finalUser = {
           id: account.localAccountId || account.homeAccountId,
           uid: account.localAccountId || account.homeAccountId,
           email: payload.email || account.username,
           name: payload.name || payload.preferred_username || account.username,
           displayName: payload.name || payload.preferred_username || account.username,
-          role: 'pending' as UserRole, // Default to pending, will be updated by backend on first API call
+            role: 'pending' as UserRole, // Default to pending if backend unavailable
           status: 'pre_registered',
           region: '',
           district: '',
@@ -249,41 +302,10 @@ export const AzureADAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
           disabled: false,
           createdAt: new Date().toISOString(),
         };
-
-        console.log('Created initial user from Azure AD:', azureUser);
-        
-        // Set the initial user state
-        setUser(azureUser);
-        
-        // Fetch actual user data from backend to get proper role and status
-        try {
-          console.log('Fetching actual user data from backend...');
-          const backendUser = await azureADApiService.getCurrentUser();
-          console.log('Backend user data:', backendUser);
-          
-          // Update user with actual backend data
-          const updatedUser: User = {
-            ...azureUser,
-            id: backendUser.id || azureUser.id,
-            uid: backendUser.uid || azureUser.uid,
-            email: backendUser.email || azureUser.email,
-            name: backendUser.name || azureUser.name,
-            displayName: backendUser.displayName || azureUser.displayName,
-            role: backendUser.role || azureUser.role,
-            status: backendUser.status || azureUser.status,
-            region: backendUser.region || azureUser.region,
-            district: backendUser.district || azureUser.district,
-            staffId: backendUser.staffId || azureUser.staffId,
-            disabled: backendUser.disabled || azureUser.disabled,
-            createdAt: backendUser.createdAt || azureUser.createdAt,
-          };
-          
-          console.log('Updated user with backend data:', updatedUser);
-          setUser(updatedUser);
-        } catch (backendError) {
-          console.error('Error fetching user data from backend:', backendError);
-          console.log('Using Azure AD data only');
         }
+        
+        console.log('Setting final user state:', finalUser);
+        setUser(finalUser);
       });
 
     } catch (error) {

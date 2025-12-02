@@ -3,6 +3,14 @@ const { CosmosClient } = require('@azure/cosmos');
 const { requireRole, requireAuth } = require('../roles');
 
 const router = express.Router();
+
+// Log all requests to this router for debugging
+router.use((req, res, next) => {
+  console.log(`[ControlOutages Router] ${req.method} ${req.path} - Request received`);
+  console.log(`[ControlOutages Router] Original URL: ${req.originalUrl}`);
+  console.log(`[ControlOutages Router] Base URL: ${req.baseUrl}`);
+  next();
+});
 const endpoint = process.env.COSMOS_DB_ENDPOINT;
 const key = process.env.COSMOS_DB_KEY;
 const databaseId = process.env.COSMOS_DB_DATABASE;
@@ -10,6 +18,26 @@ const containerId = 'controlOutages';
 const client = new CosmosClient({ endpoint, key });
 const database = client.database(databaseId);
 const container = database.container(containerId);
+
+// Ensure container exists
+async function ensureContainer() {
+  try {
+    const { resource } = await database.containers.createIfNotExists({
+      id: containerId,
+      partitionKey: { paths: ['/id'] }
+    });
+    console.log(`[ControlOutages] Container '${containerId}' ensured (created or already exists)`);
+    return resource;
+  } catch (error) {
+    console.error(`[ControlOutages] Error ensuring container:`, error);
+    throw error;
+  }
+}
+
+// Ensure container exists on module load
+ensureContainer().catch(err => {
+  console.error(`[ControlOutages] Failed to ensure container on startup:`, err);
+});
 
 // Log endpoint status only in development
 if (process.env.NODE_ENV === 'development') {
@@ -253,12 +281,49 @@ router.get('/', requireAuth(), requireRole(['system_admin', 'global_engineer', '
 });
 
 // POST (create) - requires authentication and appropriate role
-router.post('/', requireAuth(), requireRole(['system_admin', 'global_engineer', 'regional_engineer', 'project_engineer', 'district_engineer', 'regional_general_manager', 'district_manager', 'ict', 'technician', 'ashsubt', 'accsubt']), async (req, res) => {
+router.post('/', (req, res, next) => {
+  console.log('[ControlOutages] POST route middleware - BEFORE requireAuth');
+  console.log('[ControlOutages] Request path:', req.path);
+  console.log('[ControlOutages] Request method:', req.method);
+  next();
+}, requireAuth(), (req, res, next) => {
+  console.log('[ControlOutages] POST route middleware - AFTER requireAuth, BEFORE requireRole');
+  console.log('[ControlOutages] req.userId:', req.userId);
+  next();
+}, requireRole(['system_admin', 'global_engineer', 'regional_engineer', 'project_engineer', 'district_engineer', 'regional_general_manager', 'district_manager', 'ict', 'technician', 'ashsubt', 'accsubt']), (req, res, next) => {
+  console.log('[ControlOutages] POST route middleware - AFTER requireRole, BEFORE handler');
+  next();
+}, async (req, res) => {
   try {
+    console.log('[ControlOutages] POST request received');
+    console.log('[ControlOutages] Request body:', JSON.stringify(req.body, null, 2));
+    console.log('[ControlOutages] User:', req.user?.id || req.userId, 'Role:', req.user?.role || req.userRole);
+    console.log('[ControlOutages] Container:', containerId);
+    console.log('[ControlOutages] Database:', databaseId);
+    
+    // Ensure container exists before creating item
+    await ensureContainer();
+    
     const { resource } = await container.items.create(req.body);
+    console.log('[ControlOutages] ✅ Successfully created outage with ID:', resource.id);
     res.status(201).json(resource);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('[ControlOutages] ❌ Error creating outage:', err);
+    console.error('[ControlOutages] Error details:', {
+      message: err.message,
+      code: err.code,
+      statusCode: err.statusCode,
+      stack: err.stack
+    });
+    
+    // Return appropriate status code based on error
+    if (err.code === 409) {
+      res.status(409).json({ error: 'Conflict: Item already exists', details: err.message });
+    } else if (err.code === 404) {
+      res.status(404).json({ error: 'Container or database not found', details: err.message });
+    } else {
+      res.status(500).json({ error: err.message, code: err.code });
+    }
   }
 });
 

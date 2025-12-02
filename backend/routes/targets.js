@@ -13,13 +13,38 @@ const database = client.database(databaseId);
 // Helper function to ensure targets container exists
 async function ensureTargetsContainer() {
   try {
-    const { container } = await database.containers.createIfNotExists({
-      id: containerId,
-      partitionKey: {
-        paths: ['/id']
+    // First, try to read the container to see if it exists
+    try {
+      const container = database.container(containerId);
+      await container.read();
+      console.log(`[Targets] Container '${containerId}' already exists`);
+      return container;
+    } catch (readError) {
+      // Container doesn't exist, try to create it
+      if (readError.code === 404) {
+        console.log(`[Targets] Container '${containerId}' not found, attempting to create...`);
+        try {
+          const { container } = await database.containers.createIfNotExists({
+            id: containerId,
+            partitionKey: {
+              paths: ['/id']
+            }
+          });
+          console.log(`[Targets] ✅ Container '${containerId}' created successfully`);
+          return container;
+        } catch (createError) {
+          // Check if error is due to container limit
+          if (createError.code === 400 && createError.body?.message?.includes('exceeded 25')) {
+            console.error(`[Targets] ❌ Cannot create container: Database has reached the 25 container limit`);
+            console.error(`[Targets] 💡 Solution: Delete an unused container or upgrade your Cosmos DB plan`);
+            throw new Error('Database container limit exceeded. Maximum 25 containers allowed. Please delete an unused container or upgrade your Cosmos DB plan.');
+          }
+          throw createError;
+        }
+      } else {
+        throw readError;
       }
-    });
-    return container;
+    }
   } catch (error) {
     console.error('[Targets] Error ensuring container exists:', error);
     throw error;
@@ -30,6 +55,11 @@ async function ensureTargetsContainer() {
 async function getContainer() {
   return await ensureTargetsContainer();
 }
+
+// Ensure container exists on module load
+ensureTargetsContainer().catch(err => {
+  console.error(`[Targets] Failed to ensure container on startup:`, err);
+});
 
 /**
  * Target Management & Performance Tracking Routes
@@ -154,15 +184,37 @@ router.get('/', requireAuth(), requireRole(['system_admin', 'global_engineer', '
         return res.json({ total: totalCount });
       }
 
-      // Add pagination to query
-      queryStr += ` OFFSET ${offset} LIMIT ${finalLimit}`;
+      // Cosmos DB SQL API: Use TOP for limiting (LIMIT is not supported)
+      // ORDER BY is required for consistent pagination
+      if (!queryStr.includes('ORDER BY')) {
+        queryStr += ' ORDER BY c.month DESC, c.id';
+      }
+      
+      // For offset > 0, fetch offset + limit records, then slice client-side
+      // For offset = 0, just use TOP with limit
+      const fetchLimit = offset > 0 ? offset + finalLimit : finalLimit;
+      
+      // Replace SELECT * with SELECT TOP n
+      queryStr = queryStr.replace('SELECT * FROM c', `SELECT TOP ${fetchLimit} * FROM c`);
+      
+      console.log('[Targets] Final query:', queryStr);
       
       const { resources } = await container.items.query(queryStr).fetchAll();
-      console.log('[Targets] Found targets:', resources.length, 'out of potential', limit, 'requested');
-      if (resources.length > 0) {
-        console.log('[Targets] Sample target:', JSON.stringify(resources[0], null, 2));
+      
+      // Handle offset client-side
+      let paginatedResources = resources;
+      if (offset > 0) {
+        paginatedResources = resources.slice(offset, offset + finalLimit);
+      } else if (resources.length > finalLimit) {
+        // Safety check: if we got more than requested, trim to limit
+        paginatedResources = resources.slice(0, finalLimit);
       }
-      res.json(resources || []);
+      
+      console.log('[Targets] Found targets:', paginatedResources.length, 'out of', resources.length, 'fetched (requested limit:', limit, ', offset:', offset, ')');
+      if (paginatedResources.length > 0) {
+        console.log('[Targets] Sample target:', JSON.stringify(paginatedResources[0], null, 2));
+      }
+      res.json(paginatedResources || []);
     } catch (queryErr) {
       console.error('[Targets] Error executing query:', queryErr);
       console.error('[Targets] Error details:', {
@@ -230,7 +282,9 @@ router.get('/region/:regionId/month/:month', requireAuth(), requireRole(['system
 // POST create or update target (Admin and Global Engineer only)
 router.post('/', requireAuth(), requireRole(['system_admin', 'global_engineer']), async (req, res) => {
   try {
-    console.log('[Targets] POST request received:', req.body);
+    console.log('[Targets] ✅ POST request received');
+    console.log('[Targets] Request body:', JSON.stringify(req.body, null, 2));
+    console.log('[Targets] User:', req.user?.id || req.userId, 'Role:', req.user?.role || req.userRole);
 
     const { regionId, districtId, month, targetType, targetValue, createdBy } = req.body;
 
@@ -271,6 +325,16 @@ router.post('/', requireAuth(), requireRole(['system_admin', 'global_engineer'])
       console.log('[Targets] Container ready');
     } catch (containerErr) {
       console.error('[Targets] Error getting container:', containerErr);
+      
+      // Check if error is due to container limit
+      if (containerErr.message?.includes('exceeded 25') || containerErr.message?.includes('container limit')) {
+        return res.status(503).json({ 
+          error: 'Database container limit exceeded',
+          details: 'The database has reached the maximum of 25 containers. Please contact an administrator to delete an unused container or upgrade the Cosmos DB plan.',
+          code: 'CONTAINER_LIMIT_EXCEEDED'
+        });
+      }
+      
       return res.status(500).json({ 
         error: 'Failed to access targets container',
         details: containerErr.message 
@@ -344,17 +408,38 @@ router.post('/', requireAuth(), requireRole(['system_admin', 'global_engineer'])
         console.log('[Targets] Target data:', JSON.stringify(targetData, null, 2));
         const { resource } = await container.items.create(targetData);
         result = resource;
-        console.log('[Targets] Created new target:', result.id);
+        console.log('[Targets] ✅ Created new target:', result.id);
       }
 
-      res.status(existing.length > 0 ? 200 : 201).json(result);
+      console.log('[Targets] ✅ Successfully saved target, sending response...');
+      const statusCode = existing.length > 0 ? 200 : 201;
+      console.log('[Targets] Response status:', statusCode);
+      console.log('[Targets] Response data:', JSON.stringify(result, null, 2));
+      res.status(statusCode).json(result);
+      console.log('[Targets] ✅ Response sent successfully');
     } catch (createErr) {
-      console.error('[Targets] Error creating/updating target:', createErr);
+      console.error('[Targets] ❌ Error creating/updating target:', createErr);
       console.error('[Targets] Error details:', {
         message: createErr.message,
         code: createErr.code,
+        statusCode: createErr.statusCode,
+        body: createErr.body,
         stack: createErr.stack
       });
+      
+      // Check for specific Cosmos DB errors
+      if (createErr.code === 409) {
+        return res.status(409).json({ 
+          error: 'Conflict: Target already exists',
+          details: createErr.message
+        });
+      } else if (createErr.code === 400 || createErr.body?.code === 'BadRequest') {
+        return res.status(400).json({ 
+          error: 'Invalid request data',
+          details: createErr.message || createErr.body?.message
+        });
+      }
+      
       return res.status(500).json({ 
         error: 'Failed to save target',
         details: createErr.message,
@@ -362,12 +447,20 @@ router.post('/', requireAuth(), requireRole(['system_admin', 'global_engineer'])
       });
     }
   } catch (err) {
-    console.error('[Targets] POST error:', err);
+    console.error('[Targets] ❌ POST error (outer catch):', err);
+    console.error('[Targets] Error type:', err.constructor.name);
+    console.error('[Targets] Error message:', err.message);
     console.error('[Targets] Error stack:', err.stack);
-    res.status(500).json({ 
-      error: err.message || 'Internal server error',
-      details: process.env.NODE_ENV === 'development' ? err.stack : undefined
-    });
+    
+    // Make sure we haven't already sent a response
+    if (!res.headersSent) {
+      res.status(500).json({ 
+        error: err.message || 'Internal server error',
+        details: process.env.NODE_ENV === 'development' ? err.stack : undefined
+      });
+    } else {
+      console.error('[Targets] ⚠️ Response already sent, cannot send error response');
+    }
   }
 });
 

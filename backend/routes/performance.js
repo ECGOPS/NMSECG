@@ -32,6 +32,7 @@ function haversineDistance(lat1, lon1, lat2, lon2) {
 }
 
 // Helper function to extract latitude and longitude from various formats
+// Validates GPS coordinates: must be numbers, not NaN, and not (0, 0)
 function extractCoordinates(inspection) {
   let lat = null;
   let lon = null;
@@ -86,12 +87,12 @@ function extractCoordinates(inspection) {
     }
   }
 
-  // Validate coordinates are within valid ranges
+  // Validate coordinates: must be numbers, not NaN, and not (0, 0)
   if (lat !== null && lon !== null && 
       typeof lat === 'number' && typeof lon === 'number' &&
       !isNaN(lat) && !isNaN(lon) &&
       lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180 &&
-      lat !== 0 && lon !== 0) { // Exclude 0,0 which is likely invalid/default
+      !(lat === 0 && lon === 0)) { // Exclude (0, 0) which is likely invalid/default
     return { latitude: lat, longitude: lon };
   }
 
@@ -151,21 +152,33 @@ function calculateFeederLength(inspections) {
     }
 
     // Sort by date and time (matching frontend logic)
+    // Handles: ISO strings, Firestore Timestamps, or Date objects
     feederInspections.sort((a, b) => {
-      // Try to combine date and time like frontend: date + 'T' + time
       const getDateValue = (ins) => {
-        const dateStr = ins.date || ins.inspectionDate || ins.createdAt || '';
+        // Try date field first (YYYY-MM-DD format)
+        let dateStr = ins.date || ins.inspectionDate || ins.createdAt || '';
         const timeStr = ins.time || '00:00';
         
+        // Handle Firestore Timestamp format (with _seconds field)
+        if (dateStr && typeof dateStr === 'object' && dateStr._seconds) {
+          dateStr = new Date(dateStr._seconds * 1000).toISOString();
+        }
+        
         // If date is in YYYY-MM-DD format, combine with time
-        if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        if (typeof dateStr === 'string' && dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
           const combined = `${dateStr}T${timeStr}`;
           return new Date(combined).getTime();
         }
         
-        // Otherwise try to parse as-is
-        const dateValue = new Date(dateStr || 0).getTime();
-        return dateValue;
+        // Try to parse as ISO string or Date object
+        if (dateStr) {
+          const dateValue = new Date(dateStr).getTime();
+          if (!isNaN(dateValue)) {
+            return dateValue;
+          }
+        }
+        
+        return 0;
       };
       
       const dateA = getDateValue(a);
@@ -331,6 +344,7 @@ router.get('/district/:districtId/month/:month', requireAuth(), requireRole(['sy
         }
       } else if (targetTypeValue === 'overheadLine') {
         // Calculate feeder length from overhead line inspections
+        // Filters by district name first, then falls back to districtId
         try {
           const overheadContainer = database.container('overheadLineInspections');
           
@@ -339,44 +353,84 @@ router.get('/district/:districtId/month/:month', requireAuth(), requireRole(['sy
           const startDateStr = `${year}-${String(monthNum).padStart(2, '0')}-01`;
           const endDateStr = `${year}-${String(monthNum).padStart(2, '0')}-31`;
           
+          // Get district name for filtering (filter by district name first, fallback to districtId)
+          const districtName = district.name || district.districtName || '';
+          
           // Try multiple query strategies to find inspections
           let overheadInspections = [];
           
-          // Strategy 1: Query by date field (YYYY-MM-DD format)
-          try {
-            const dateQuery = `SELECT * FROM c WHERE c.districtId = "${districtId}" AND c.date >= "${startDateStr}" AND c.date <= "${endDateStr}"`;
-            console.log(`[Performance] Trying date query (YYYY-MM-DD):`, dateQuery);
-            const { resources: dateResults } = await overheadContainer.items.query(dateQuery).fetchAll();
-            overheadInspections = dateResults;
-            console.log(`[Performance] Found ${overheadInspections.length} inspections using date field`);
-          } catch (err) {
-            console.warn('[Performance] Date field query failed:', err.message);
-          }
-          
-          // Strategy 2: Query by inspectionDate or createdAt (ISO format) if no results
-          if (overheadInspections.length === 0) {
+          // Strategy 1: Query by district name and date field (YYYY-MM-DD format)
+          if (districtName) {
             try {
-              const isoQuery = `SELECT * FROM c WHERE c.districtId = "${districtId}" AND ((c.inspectionDate >= "${start}" AND c.inspectionDate <= "${end}") OR (c.createdAt >= "${start}" AND c.createdAt <= "${end}"))`;
-              console.log(`[Performance] Trying ISO date query:`, isoQuery);
-              const { resources: isoResults } = await overheadContainer.items.query(isoQuery).fetchAll();
-              overheadInspections = isoResults;
-              console.log(`[Performance] Found ${overheadInspections.length} inspections using ISO date fields`);
+              const dateQuery = `SELECT * FROM c WHERE c.district = "${districtName}" AND c.date >= "${startDateStr}" AND c.date <= "${endDateStr}"`;
+              console.log(`[Performance] Trying date query with district name (YYYY-MM-DD):`, dateQuery);
+              const { resources: dateResults } = await overheadContainer.items.query(dateQuery).fetchAll();
+              overheadInspections = dateResults;
+              console.log(`[Performance] Found ${overheadInspections.length} inspections using district name and date field`);
             } catch (err) {
-              console.warn('[Performance] ISO date query failed:', err.message);
+              console.warn('[Performance] Date field query with district name failed:', err.message);
             }
           }
           
-          // Strategy 3: Query all for district (no date filter) as fallback for debugging
+          // Strategy 2: Fallback to districtId if district name query returned no results
           if (overheadInspections.length === 0) {
             try {
-              const allQuery = `SELECT * FROM c WHERE c.districtId = "${districtId}"`;
+              const dateQuery = `SELECT * FROM c WHERE c.districtId = "${districtId}" AND c.date >= "${startDateStr}" AND c.date <= "${endDateStr}"`;
+              console.log(`[Performance] Trying date query with districtId (YYYY-MM-DD):`, dateQuery);
+              const { resources: dateResults } = await overheadContainer.items.query(dateQuery).fetchAll();
+              overheadInspections = dateResults;
+              console.log(`[Performance] Found ${overheadInspections.length} inspections using districtId and date field`);
+            } catch (err) {
+              console.warn('[Performance] Date field query with districtId failed:', err.message);
+            }
+          }
+          
+          // Strategy 3: Query by inspectionDate or createdAt (ISO format) with district name
+          if (overheadInspections.length === 0 && districtName) {
+            try {
+              const isoQuery = `SELECT * FROM c WHERE c.district = "${districtName}" AND ((c.inspectionDate >= "${start}" AND c.inspectionDate <= "${end}") OR (c.createdAt._seconds >= ${Math.floor(new Date(start).getTime() / 1000)} AND c.createdAt._seconds <= ${Math.floor(new Date(end).getTime() / 1000)}))`;
+              console.log(`[Performance] Trying ISO date query with district name:`, isoQuery);
+              const { resources: isoResults } = await overheadContainer.items.query(isoQuery).fetchAll();
+              overheadInspections = isoResults;
+              console.log(`[Performance] Found ${overheadInspections.length} inspections using district name and ISO date fields`);
+            } catch (err) {
+              console.warn('[Performance] ISO date query with district name failed:', err.message);
+            }
+          }
+          
+          // Strategy 4: Fallback to districtId with ISO dates
+          if (overheadInspections.length === 0) {
+            try {
+              const isoQuery = `SELECT * FROM c WHERE c.districtId = "${districtId}" AND ((c.inspectionDate >= "${start}" AND c.inspectionDate <= "${end}") OR (c.createdAt._seconds >= ${Math.floor(new Date(start).getTime() / 1000)} AND c.createdAt._seconds <= ${Math.floor(new Date(end).getTime() / 1000)}))`;
+              console.log(`[Performance] Trying ISO date query with districtId:`, isoQuery);
+              const { resources: isoResults } = await overheadContainer.items.query(isoQuery).fetchAll();
+              overheadInspections = isoResults;
+              console.log(`[Performance] Found ${overheadInspections.length} inspections using districtId and ISO date fields`);
+            } catch (err) {
+              console.warn('[Performance] ISO date query with districtId failed:', err.message);
+            }
+          }
+          
+          // Strategy 5: Query all for district (no date filter) as fallback, filter by month in JavaScript
+          if (overheadInspections.length === 0) {
+            try {
+              // Try district name first
+              let allQuery = districtName 
+                ? `SELECT * FROM c WHERE c.district = "${districtName}"`
+                : `SELECT * FROM c WHERE c.districtId = "${districtId}"`;
               console.log(`[Performance] Trying all inspections query for debugging:`, allQuery);
               const { resources: allResults } = await overheadContainer.items.query(allQuery).fetchAll();
-              console.log(`[Performance] Found ${allResults.length} total inspections for district ${districtId} (no date filter)`);
-              // Filter by month in JavaScript
+              console.log(`[Performance] Found ${allResults.length} total inspections for district (no date filter)`);
+              // Filter by month in JavaScript, handling various date formats
               overheadInspections = allResults.filter(ins => {
-                const insDate = ins.date || ins.inspectionDate || ins.createdAt;
+                let insDate = ins.date || ins.inspectionDate || ins.createdAt;
                 if (!insDate) return false;
+                
+                // Handle Firestore Timestamp format
+                if (insDate && typeof insDate === 'object' && insDate._seconds) {
+                  insDate = new Date(insDate._seconds * 1000).toISOString();
+                }
+                
                 const dateStr = typeof insDate === 'string' ? insDate : insDate.toISOString();
                 return dateStr.startsWith(month);
               });
@@ -636,6 +690,8 @@ router.get('/region/:regionId/month/:month', requireAuth(), requireRole(['system
             actual = 0;
           }
         } else if (type === 'overheadLine') {
+          // Calculate feeder length from overhead line inspections
+          // Filters by district name first, then falls back to districtId
           try {
             const overheadContainer = database.container('overheadLineInspections');
             
@@ -644,44 +700,84 @@ router.get('/region/:regionId/month/:month', requireAuth(), requireRole(['system
             const startDateStr = `${year}-${String(monthNum).padStart(2, '0')}-01`;
             const endDateStr = `${year}-${String(monthNum).padStart(2, '0')}-31`;
             
+            // Get district name for filtering (filter by district name first, fallback to districtId)
+            const districtName = district.name || district.districtName || '';
+            
             // Try multiple query strategies to find inspections
             let overheadInspections = [];
             
-            // Strategy 1: Query by date field (YYYY-MM-DD format)
-            try {
-              const dateQuery = `SELECT * FROM c WHERE c.districtId = "${districtId}" AND c.date >= "${startDateStr}" AND c.date <= "${endDateStr}"`;
-              console.log(`[Performance] Trying date query (YYYY-MM-DD):`, dateQuery);
-              const { resources: dateResults } = await overheadContainer.items.query(dateQuery).fetchAll();
-              overheadInspections = dateResults;
-              console.log(`[Performance] Found ${overheadInspections.length} inspections using date field`);
-            } catch (err) {
-              console.warn('[Performance] Date field query failed:', err.message);
-            }
-            
-            // Strategy 2: Query by inspectionDate or createdAt (ISO format) if no results
-            if (overheadInspections.length === 0) {
+            // Strategy 1: Query by district name and date field (YYYY-MM-DD format)
+            if (districtName) {
               try {
-                const isoQuery = `SELECT * FROM c WHERE c.districtId = "${districtId}" AND ((c.inspectionDate >= "${start}" AND c.inspectionDate <= "${end}") OR (c.createdAt >= "${start}" AND c.createdAt <= "${end}"))`;
-                console.log(`[Performance] Trying ISO date query:`, isoQuery);
-                const { resources: isoResults } = await overheadContainer.items.query(isoQuery).fetchAll();
-                overheadInspections = isoResults;
-                console.log(`[Performance] Found ${overheadInspections.length} inspections using ISO date fields`);
+                const dateQuery = `SELECT * FROM c WHERE c.district = "${districtName}" AND c.date >= "${startDateStr}" AND c.date <= "${endDateStr}"`;
+                console.log(`[Performance] Trying date query with district name (YYYY-MM-DD):`, dateQuery);
+                const { resources: dateResults } = await overheadContainer.items.query(dateQuery).fetchAll();
+                overheadInspections = dateResults;
+                console.log(`[Performance] Found ${overheadInspections.length} inspections using district name and date field`);
               } catch (err) {
-                console.warn('[Performance] ISO date query failed:', err.message);
+                console.warn('[Performance] Date field query with district name failed:', err.message);
               }
             }
             
-            // Strategy 3: Query all for district (no date filter) as fallback for debugging
+            // Strategy 2: Fallback to districtId if district name query returned no results
             if (overheadInspections.length === 0) {
               try {
-                const allQuery = `SELECT * FROM c WHERE c.districtId = "${districtId}"`;
+                const dateQuery = `SELECT * FROM c WHERE c.districtId = "${districtId}" AND c.date >= "${startDateStr}" AND c.date <= "${endDateStr}"`;
+                console.log(`[Performance] Trying date query with districtId (YYYY-MM-DD):`, dateQuery);
+                const { resources: dateResults } = await overheadContainer.items.query(dateQuery).fetchAll();
+                overheadInspections = dateResults;
+                console.log(`[Performance] Found ${overheadInspections.length} inspections using districtId and date field`);
+              } catch (err) {
+                console.warn('[Performance] Date field query with districtId failed:', err.message);
+              }
+            }
+            
+            // Strategy 3: Query by inspectionDate or createdAt (ISO format) with district name
+            if (overheadInspections.length === 0 && districtName) {
+              try {
+                const isoQuery = `SELECT * FROM c WHERE c.district = "${districtName}" AND ((c.inspectionDate >= "${start}" AND c.inspectionDate <= "${end}") OR (c.createdAt._seconds >= ${Math.floor(new Date(start).getTime() / 1000)} AND c.createdAt._seconds <= ${Math.floor(new Date(end).getTime() / 1000)}))`;
+                console.log(`[Performance] Trying ISO date query with district name:`, isoQuery);
+                const { resources: isoResults } = await overheadContainer.items.query(isoQuery).fetchAll();
+                overheadInspections = isoResults;
+                console.log(`[Performance] Found ${overheadInspections.length} inspections using district name and ISO date fields`);
+              } catch (err) {
+                console.warn('[Performance] ISO date query with district name failed:', err.message);
+              }
+            }
+            
+            // Strategy 4: Fallback to districtId with ISO dates
+            if (overheadInspections.length === 0) {
+              try {
+                const isoQuery = `SELECT * FROM c WHERE c.districtId = "${districtId}" AND ((c.inspectionDate >= "${start}" AND c.inspectionDate <= "${end}") OR (c.createdAt._seconds >= ${Math.floor(new Date(start).getTime() / 1000)} AND c.createdAt._seconds <= ${Math.floor(new Date(end).getTime() / 1000)}))`;
+                console.log(`[Performance] Trying ISO date query with districtId:`, isoQuery);
+                const { resources: isoResults } = await overheadContainer.items.query(isoQuery).fetchAll();
+                overheadInspections = isoResults;
+                console.log(`[Performance] Found ${overheadInspections.length} inspections using districtId and ISO date fields`);
+              } catch (err) {
+                console.warn('[Performance] ISO date query with districtId failed:', err.message);
+              }
+            }
+            
+            // Strategy 5: Query all for district (no date filter) as fallback, filter by month in JavaScript
+            if (overheadInspections.length === 0) {
+              try {
+                // Try district name first
+                let allQuery = districtName 
+                  ? `SELECT * FROM c WHERE c.district = "${districtName}"`
+                  : `SELECT * FROM c WHERE c.districtId = "${districtId}"`;
                 console.log(`[Performance] Trying all inspections query for debugging:`, allQuery);
                 const { resources: allResults } = await overheadContainer.items.query(allQuery).fetchAll();
-                console.log(`[Performance] Found ${allResults.length} total inspections for district ${districtId} (no date filter)`);
-                // Filter by month in JavaScript
+                console.log(`[Performance] Found ${allResults.length} total inspections for district (no date filter)`);
+                // Filter by month in JavaScript, handling various date formats
                 overheadInspections = allResults.filter(ins => {
-                  const insDate = ins.date || ins.inspectionDate || ins.createdAt;
+                  let insDate = ins.date || ins.inspectionDate || ins.createdAt;
                   if (!insDate) return false;
+                  
+                  // Handle Firestore Timestamp format
+                  if (insDate && typeof insDate === 'object' && insDate._seconds) {
+                    insDate = new Date(insDate._seconds * 1000).toISOString();
+                  }
+                  
                   const dateStr = typeof insDate === 'string' ? insDate : insDate.toISOString();
                   return dateStr.startsWith(month);
                 });

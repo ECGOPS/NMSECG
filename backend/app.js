@@ -451,15 +451,24 @@ app.use(async (req, res, next) => {
     
     // JWT middleware has already processed authentication and set req.user, req.userId, req.userRole
     // Just ensure these values exist for backward compatibility
+    // IMPORTANT: Try to get userId from JWT payload if not already set
+    if (!req.userId && req.auth?.payload) {
+      req.userId = req.auth.payload.oid || req.auth.payload.sub;
+      console.log(`[USER-MIDDLEWARE] Set req.userId from JWT payload: ${req.userId}`);
+    }
+    
     if (!req.user) {
-      req.user = { id: 'unknown', role: 'user' };
+      req.user = { id: req.userId || 'unknown', role: 'user' };
     }
     if (!req.userId) {
       req.userId = req.user.id;
+      console.log(`[USER-MIDDLEWARE] Set req.userId from req.user.id: ${req.userId}`);
     }
     if (!req.userRole) {
       req.userRole = req.user.role;
     }
+    
+    console.log(`[USER-MIDDLEWARE] Final values - userId: ${req.userId}, userRole: ${req.userRole}, hasAuth: ${!!req.auth}`);
     
     next();
   } catch (err) {
@@ -594,11 +603,11 @@ if (process.env.NODE_ENV === 'production') {
   app.use('/api/inspections', require('./routes/overheadLineInspections'));
   app.use('/api/assets', require('./routes/vitAssets'));
   app.use('/api/checks', require('./routes/vitInspections'));
-  app.use('/api/outages', require('./routes/controlOutages'));
-  app.use('/api/monitoring', require('./routes/loadMonitoring'));
+  // app.use('/api/outages', require('./routes/controlOutages')); // Moved outside production block to be available in all environments
+  // app.use('/api/monitoring', require('./routes/loadMonitoring')); // Moved outside production block to be available in all environments
   // app.use('/api/faults', require('./routes/faults')); // Unified route disabled due to issues
   app.use('/api/events', require('./routes/securityEvents'));
-  app.use('/api/substations', require('./routes/substationInspections'));
+  // app.use('/api/substations', require('./routes/substationInspections')); // Moved outside production block
   app.use('/api/logs', require('./routes/userLogs'));
   app.use('/api/core', require('./routes/system'));
   app.use('/api/access', require('./routes/permissions'));
@@ -614,6 +623,11 @@ if (process.env.NODE_ENV === 'production') {
   app.use('/api/performance', require('./routes/performance'));
   app.use('/api/reports', require('./routes/reports'));
 }
+
+// Routes available in all environments (not just production)
+app.use('/api/outages', require('./routes/controlOutages'));
+app.use('/api/substations', require('./routes/substationInspections'));
+app.use('/api/monitoring', require('./routes/loadMonitoring'));
 
 // Photo routes (NO AUTH REQUIRED)
 app.use('/api/photos', require('./routes/photos'));
