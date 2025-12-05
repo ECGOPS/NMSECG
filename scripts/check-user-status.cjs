@@ -8,6 +8,7 @@ const containerId = 'users';
 
 if (!endpoint || !key || !databaseId) {
   console.error('❌ Missing required environment variables');
+  console.error('Required: COSMOS_DB_ENDPOINT, COSMOS_DB_KEY, COSMOS_DB_DATABASE');
   process.exit(1);
 }
 
@@ -15,48 +16,25 @@ const client = new CosmosClient({ endpoint, key });
 const database = client.database(databaseId);
 const container = database.container(containerId);
 
-async function searchUserByEmail(email) {
+async function checkUserStatus(email) {
   try {
-    console.log(`\n🔍 Searching for user with email containing: ${email}\n`);
+    console.log(`\n🔍 Searching for user: ${email}\n`);
     
-    // Try exact match first
-    const exactQuery = {
+    // Query by email (case-insensitive search)
+    const querySpec = {
       query: 'SELECT * FROM c WHERE LOWER(c.email) = @email',
       parameters: [{ name: '@email', value: email.toLowerCase() }]
     };
     
-    let { resources } = await container.items.query(exactQuery).fetchAll();
-    
-    if (resources.length === 0) {
-      // Try partial match
-      console.log('No exact match found, trying partial match...');
-      const partialQuery = {
-        query: 'SELECT * FROM c WHERE CONTAINS(LOWER(c.email), @email)',
-        parameters: [{ name: '@email', value: email.toLowerCase() }]
-      };
-      const partialResult = await container.items.query(partialQuery).fetchAll();
-      resources = partialResult.resources;
-    }
+    const { resources } = await container.items.query(querySpec).fetchAll();
     
     if (resources.length === 0) {
       console.log('❌ User not found in database');
-      console.log('\n💡 Trying to list all users to see what emails exist...');
-      
-      // List first 10 users to see what emails exist
-      const allUsersQuery = 'SELECT TOP 10 c.id, c.email, c.name, c.role, c.status FROM c';
-      const { resources: sampleUsers } = await container.items.query(allUsersQuery).fetchAll();
-      
-      if (sampleUsers.length > 0) {
-        console.log('\n📋 Sample users in database:');
-        sampleUsers.forEach((user, index) => {
-          console.log(`   ${index + 1}. ${user.email || 'N/A'} - ${user.name || 'N/A'} (${user.role || 'N/A'}, ${user.status || 'N/A'})`);
-        });
-      }
       return;
     }
     
     if (resources.length > 1) {
-      console.log(`⚠️  Warning: Found ${resources.length} users with similar email`);
+      console.log(`⚠️  Warning: Found ${resources.length} users with this email`);
     }
     
     resources.forEach((user, index) => {
@@ -88,7 +66,7 @@ async function searchUserByEmail(email) {
     });
     
   } catch (error) {
-    console.error('❌ Error searching user:', error);
+    console.error('❌ Error checking user status:', error);
     console.error('Error details:', {
       message: error.message,
       code: error.code,
@@ -102,16 +80,17 @@ const email = process.argv[2];
 
 if (!email) {
   console.error('❌ Please provide an email address as an argument');
-  console.error('Usage: node scripts/search-user-by-email.cjs <email>');
+  console.error('Usage: node scripts/check-user-status.cjs <email>');
   process.exit(1);
 }
 
-searchUserByEmail(email)
+checkUserStatus(email)
   .then(() => {
-    console.log('\n✅ Search complete');
+    console.log('\n✅ Check complete');
     process.exit(0);
   })
   .catch((error) => {
     console.error('❌ Fatal error:', error);
     process.exit(1);
   });
+

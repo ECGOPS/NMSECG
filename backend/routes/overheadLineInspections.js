@@ -134,6 +134,7 @@ router.get('/', dynamicPermissions.requireAccess('overhead_line_inspection'), as
     const limit = parseInt(req.query.limit) || 20;
     const offset = parseInt(req.query.offset) || 0;
     const countOnly = req.query.countOnly === 'true';
+    const uniqueFeeders = req.query.uniqueFeeders === 'true';
 
     // Count-only shortcut for better performance
     if (countOnly) {
@@ -145,8 +146,117 @@ router.get('/', dynamicPermissions.requireAccess('overhead_line_inspection'), as
       return res.json({ total: totalCount });
     }
 
-    // Add pagination to main query
-    queryStr += ` OFFSET ${offset} LIMIT ${limit}`;
+    // Return unique feeder names only (for filter dropdown)
+    if (uniqueFeeders) {
+      try {
+        // Remove feeder filter from query to get all feeders
+        const feederFilterIndex = filters.findIndex(f => f.includes('feederName'));
+        if (feederFilterIndex !== -1) {
+          filters.splice(feederFilterIndex, 1);
+        }
+        
+        // Optimize: Use a reasonable limit to prevent timeouts
+        // fetchAll() automatically handles pagination, but we limit to prevent timeout
+        const maxRecords = 2000; // Reasonable limit to prevent timeout
+        let allFeederNames = new Set();
+        const startTime = Date.now();
+        
+        // Build base query - no ORDER BY needed for unique values, improves performance
+        // Using TOP to limit results and prevent timeout
+        let baseQuery = `SELECT TOP ${maxRecords} VALUE c.feederName FROM c`;
+        if (filters.length > 0) {
+          baseQuery += ' WHERE ' + filters.join(' AND ');
+        }
+        
+        console.log('[OverheadLineInspections] Fetching unique feeders with optimized query...');
+        console.log('[OverheadLineInspections] Query:', baseQuery);
+        
+        try {
+          // fetchAll() automatically handles pagination with continuation tokens
+          // Using maxItemCount to control batch size for better performance
+          const queryOptions = {
+            maxItemCount: 500 // Smaller batches for faster initial response
+          };
+          
+          const { resources } = await container.items.query(baseQuery, queryOptions).fetchAll();
+          
+          // Extract feeder names
+          if (resources && resources.length > 0) {
+            resources.forEach(item => {
+              const feederName = typeof item === 'string' ? item : (item?.feederName || String(item));
+              if (typeof feederName === 'string' && feederName.trim().length > 0) {
+                allFeederNames.add(feederName.trim());
+              }
+            });
+            console.log(`[OverheadLineInspections] Found ${resources.length} records, ${allFeederNames.size} unique feeders`);
+          } else {
+            console.log('[OverheadLineInspections] No records found');
+          }
+          
+        } catch (queryError) {
+          console.error('[OverheadLineInspections] Error in unique feeders query:', queryError);
+          // If query fails, try with even smaller limit
+          console.log('[OverheadLineInspections] Falling back to smaller query with limit 500...');
+          try {
+            const fallbackQuery = `SELECT TOP 500 VALUE c.feederName FROM c`;
+            const fallbackWhere = filters.length > 0 ? ' WHERE ' + filters.join(' AND ') : '';
+            const { resources: fallbackResources } = await container.items.query(fallbackQuery + fallbackWhere).fetchAll();
+            
+            fallbackResources.forEach(item => {
+              const feederName = typeof item === 'string' ? item : (item?.feederName || String(item));
+              if (typeof feederName === 'string' && feederName.trim().length > 0) {
+                allFeederNames.add(feederName.trim());
+              }
+            });
+            console.log(`[OverheadLineInspections] Fallback query found ${fallbackResources.length} records, ${allFeederNames.size} unique feeders`);
+          } catch (fallbackError) {
+            console.error('[OverheadLineInspections] Fallback query also failed:', fallbackError);
+            // Return empty array on complete failure
+            return res.json([]);
+          }
+        }
+        
+        // Convert Set to sorted array
+        const uniqueFeederNames = Array.from(allFeederNames).sort();
+        const executionTime = Date.now() - startTime;
+        
+        console.log(`[OverheadLineInspections] Found ${uniqueFeederNames.length} unique feeders (took ${executionTime}ms)`);
+        
+        // Warn if we might have hit a limit
+        if (uniqueFeederNames.length >= maxRecords) {
+          console.warn(`[OverheadLineInspections] Found ${uniqueFeederNames.length} unique feeders (may have hit limit of ${maxRecords}). Consider using search/filter functionality.`);
+        }
+        
+        // Ensure we return an array of strings
+        return res.json(uniqueFeederNames);
+      } catch (uniqueFeedersError) {
+        console.error('[OverheadLineInspections] Error fetching unique feeders:', uniqueFeedersError);
+        // Return empty array on error
+        return res.json([]);
+      }
+    }
+
+    // Cosmos DB SQL API: Use TOP for limiting (LIMIT is not supported)
+    // ORDER BY is required for consistent pagination
+    if (!queryStr.includes('ORDER BY')) {
+      queryStr += ' ORDER BY c.createdAt DESC';
+    }
+    
+    // Optimize pagination: For large offsets, use a more efficient approach
+    // Cap the fetch limit to prevent fetching too many records
+    const MAX_FETCH_LIMIT = 500; // Maximum records to fetch in one query
+    let fetchLimit = offset > 0 ? Math.min(offset + limit, MAX_FETCH_LIMIT) : limit;
+    
+    // If offset is very large, we need to fetch in chunks or use a different strategy
+    // For now, we'll fetch what we can and return what's available
+    if (offset >= MAX_FETCH_LIMIT) {
+      console.warn(`[OverheadLineInspections] Large offset (${offset}) detected. Consider using continuation tokens for better performance.`);
+      // For very large offsets, we'll fetch from the max limit
+      fetchLimit = MAX_FETCH_LIMIT;
+    }
+    
+    // Replace SELECT * with SELECT TOP n
+    queryStr = queryStr.replace('SELECT * FROM c', `SELECT TOP ${fetchLimit} * FROM c`);
 
     // Execute paginated query
     console.log('[OverheadLineInspections] Final query:', queryStr);
@@ -158,7 +268,25 @@ router.get('/', dynamicPermissions.requireAccess('overhead_line_inspection'), as
       const result = await container.items.query(queryStr).fetchAll();
       resources = result.resources;
       executionTime = Date.now() - startTime;
-      console.log('[OverheadLineInspections] Query executed successfully in', executionTime, 'ms');
+      console.log('[OverheadLineInspections] Query executed successfully in', executionTime, 'ms, fetched:', resources.length, 'records');
+      
+      // Handle offset client-side
+      let paginatedResources = resources;
+      if (offset > 0) {
+        if (offset < resources.length) {
+          paginatedResources = resources.slice(offset, offset + limit);
+        } else {
+          // Offset is beyond what we fetched - return empty array
+          paginatedResources = [];
+          console.warn(`[OverheadLineInspections] Offset ${offset} exceeds fetched records (${resources.length}). Returning empty array.`);
+        }
+      } else if (resources.length > limit) {
+        // Safety check: if we got more than requested, trim to limit
+        paginatedResources = resources.slice(0, limit);
+      }
+      resources = paginatedResources;
+      
+      console.log('[OverheadLineInspections] Returning', resources.length, 'records (requested limit:', limit, ', offset:', offset, ')');
     } catch (queryError) {
       console.error('[OverheadLineInspections] Query execution error:', queryError);
       return res.status(500).json({
@@ -169,8 +297,12 @@ router.get('/', dynamicPermissions.requireAccess('overhead_line_inspection'), as
       });
     }
 
-    // Get total count without pagination for accurate pagination info
+    // Get total count - cache this separately to avoid querying every time
+    // Only query count if not provided in query params (for performance)
     let totalCount = 0;
+    const skipCount = req.query.skipCount === 'true';
+    
+    if (!skipCount) {
     try {
       // Build count query with same filters but without pagination
       let countQuery = 'SELECT VALUE COUNT(1) FROM c';
@@ -181,13 +313,20 @@ router.get('/', dynamicPermissions.requireAccess('overhead_line_inspection'), as
       }
       
       console.log('[OverheadLineInspections] Count query:', countQuery);
+        const countStartTime = Date.now();
       const { resources: countResources } = await container.items.query(countQuery).fetchAll();
+        const countExecutionTime = Date.now() - countStartTime;
       totalCount = countResources[0] ?? 0;
-      console.log('[OverheadLineInspections] Count query result:', totalCount);
+        console.log('[OverheadLineInspections] Count query result:', totalCount, `(took ${countExecutionTime}ms)`);
     } catch (countError) {
       console.error('[OverheadLineInspections] Count query error:', countError);
       // Don't fail the request, just use the current page count
       totalCount = resources.length;
+      }
+    } else {
+      // If count is skipped, don't return a total (frontend will use cached value from page 1)
+      // Return -1 to indicate total was skipped
+      totalCount = -1;
     }
 
     // Enhanced logging with performance metrics
@@ -228,13 +367,14 @@ router.get('/', dynamicPermissions.requireAccess('overhead_line_inspection'), as
     });
 
     // Structured response with pagination metadata
+    // If totalCount is -1 (skipped), don't calculate totalPages (frontend will use cached value)
     const response = {
       data: resources,
       total: totalCount,
       page: Math.floor(offset / limit) + 1,
       pageSize: limit,
-      totalPages: Math.ceil(totalCount / limit),
-      hasNextPage: (Math.floor(offset / limit) + 1) < Math.ceil(totalCount / limit),
+      totalPages: totalCount > 0 ? Math.ceil(totalCount / limit) : undefined,
+      hasNextPage: totalCount > 0 ? (Math.floor(offset / limit) + 1) < Math.ceil(totalCount / limit) : undefined,
       hasPreviousPage: offset > 0
     };
     

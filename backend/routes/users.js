@@ -64,7 +64,7 @@ router.get('/me', requireAuth(), async (req, res) => {
       
     // If still not found, try to find by email (for existing users with different UID)
     const userEmail = authPayload?.email || authPayload?.preferred_username;
-    if (userEmail) {
+      if (userEmail) {
       console.log(`[ME] Step 3: Querying by email: ${userEmail}`);
       // Use case-insensitive email matching (same as auth.js)
       const { resources: emailUsers } = await container.items.query({
@@ -73,14 +73,14 @@ router.get('/me', requireAuth(), async (req, res) => {
       }).fetchAll();
       
       console.log(`[ME] Step 3 result: Found ${emailUsers.length} user(s) by email`);
-      
-      if (emailUsers.length > 0) {
-        // Found existing user by email - return the existing user data
+        
+        if (emailUsers.length > 0) {
+          // Found existing user by email - return the existing user data
         console.log(`[ME] ✅ Found user by email: ${emailUsers[0].email} (role: ${emailUsers[0].role}, status: ${emailUsers[0].status})`);
-        return res.json(emailUsers[0]);
+          return res.json(emailUsers[0]);
+        }
       }
-    }
-    
+      
     console.log(`[ME] ❌ User not found with userId: ${userId}, email: ${userEmail || 'N/A'}`);
     console.log(`[ME] All lookup methods failed`);
       return res.status(404).json({ error: 'User not found' });
@@ -106,32 +106,58 @@ router.get('/', requireAuth(), async (req, res) => {
       filters.push(`c.${key} = "${req.query[key]}"`);
     }
     if (filters.length) queryStr += ' WHERE ' + filters.join(' AND ');
+    
+    // Add ORDER BY for consistent pagination (required for TOP)
     if (req.query.sort) {
       queryStr += ` ORDER BY c.${req.query.sort} ${req.query.order === 'desc' ? 'DESC' : 'ASC'}`;
+    } else {
+      // Default ordering by id for consistent pagination
+      queryStr += ' ORDER BY c.id';
     }
+    
     const limit = parseInt(req.query.limit) || 20;
     const offset = parseInt(req.query.offset) || 0;
-    queryStr += ` OFFSET ${offset} LIMIT ${limit}`;
     
-    console.log('[Users] Final query:', queryStr);
+    console.log('[Users] Final query before pagination:', queryStr);
     
     if (req.query.countOnly === 'true') {
-      const countQuery = queryStr.replace(/SELECT \* FROM c/, 'SELECT VALUE COUNT(1) FROM c');
+      // Remove ORDER BY and pagination for count query
+      const countQuery = queryStr.replace(/ORDER BY.*$/, '').replace(/SELECT \* FROM c/, 'SELECT VALUE COUNT(1) FROM c');
       console.log('[Users] Count query:', countQuery);
       const { resources: countResources } = await container.items.query(countQuery).fetchAll();
-      console.log('[Users] Count result:', countResources[0]);
-      return res.json({ count: countResources[0] });
+      const count = countResources[0] ?? 0;
+      console.log('[Users] Count result:', count);
+      return res.json({ count });
     }
+    
+    // Cosmos DB SQL API: Use TOP for limiting (LIMIT is not supported)
+    // For offset > 0, fetch offset + limit records, then slice client-side
+    const fetchLimit = offset > 0 ? offset + limit : limit;
+    queryStr = queryStr.replace('SELECT * FROM c', `SELECT TOP ${fetchLimit} * FROM c`);
+    
+    console.log('[Users] Final query with TOP:', queryStr);
     
     const { resources } = await container.items.query(queryStr).fetchAll();
     
-    // Log user details for debugging
+    // Handle offset client-side
+    let paginatedResources = resources;
+    if (offset > 0) {
+      paginatedResources = resources.slice(offset, offset + limit);
+    } else if (resources.length > limit) {
+      // Safety check: if we got more than requested, trim to limit
+      paginatedResources = resources.slice(0, limit);
+    }
+    
+    // Log user details for debugging (including pending users)
     console.log('[Users] Query result:', {
-      totalUsers: resources.length,
-      users: resources.map(u => ({ id: u.id, name: u.name, email: u.email, status: u.status, role: u.role }))
+      totalFetched: resources.length,
+      totalReturned: paginatedResources.length,
+      requestedLimit: limit,
+      requestedOffset: offset,
+      users: paginatedResources.map(u => ({ id: u.id, name: u.name, email: u.email, status: u.status, role: u.role }))
     });
     
-    res.json(resources);
+    res.json(paginatedResources);
   } catch (err) {
     console.error('[Users] Error in GET /:', err);
     res.status(500).json({ error: err.message });

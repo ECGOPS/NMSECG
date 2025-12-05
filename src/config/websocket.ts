@@ -7,7 +7,7 @@ export const WEBSOCKET_CONFIG = {
   },
   // Production (Azure)
   production: {
-    url: 'wss://ecgops-d3d7b2h9cub0csgh.canadacentral-01.azurewebsites.net',
+    url: 'wss://nms1-cchfa0g8czbkf0a7.canadacentral-01.azurewebsites.net',
     secure: true
   }
 };

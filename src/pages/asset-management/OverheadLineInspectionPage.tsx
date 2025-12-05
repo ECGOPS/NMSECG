@@ -27,6 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Combobox, ComboboxOption } from "@/components/ui/combobox";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationPrevious, PaginationNext } from "@/components/ui/pagination";
 import { InspectionDetailsView } from "@/components/inspection/InspectionDetailsView";
 import { useNavigate } from "react-router-dom";
@@ -63,6 +64,8 @@ export default function OverheadLineInspectionPage() {
   const pageSize = 20; // Optimized page size after removing base64 data
   const navigate = useNavigate();
   const [offlineInspections, setOfflineInspections] = useState<any[]>([]);
+  const [allFeeders, setAllFeeders] = useState<string[]>([]);
+  const [isLoadingFeeders, setIsLoadingFeeders] = useState(false);
 
   // Load offline inspections
   useEffect(() => {
@@ -193,10 +196,63 @@ export default function OverheadLineInspectionPage() {
   }, [districts, selectedRegion, regions, user]);
 
   // Server-side pagination state - no client-side filtering needed
-  const [totalRecords, setTotalRecords] = useState(0);
+  // Global data cache to prevent re-mounting issues
+  const GLOBAL_CACHE_KEY = 'overheadLineInspections_globalCache';
+  
+  // Load cached data from localStorage on component mount
+  const loadCachedData = useCallback(() => {
+    try {
+      const cachedData = localStorage.getItem(GLOBAL_CACHE_KEY);
+      if (cachedData) {
+        const parsed = JSON.parse(cachedData);
+        console.log('[OverheadLineInspectionPage] Loading cached data from localStorage:', parsed);
+        return parsed;
+      }
+    } catch (error) {
+      console.error('[OverheadLineInspectionPage] Error loading cached data:', error);
+    }
+    return null;
+  }, []);
+
+  // Save data to global cache
+  const saveCachedData = useCallback((data: {
+    currentPageData: NetworkInspection[];
+    totalRecords: number;
+    currentPage: number;
+    pageSize: number;
+    lastUpdated: number;
+  }) => {
+    try {
+      const cacheData = {
+        ...data,
+        lastUpdated: Date.now()
+      };
+      localStorage.setItem(GLOBAL_CACHE_KEY, JSON.stringify(cacheData));
+      console.log('[OverheadLineInspectionPage] Saved data to global cache:', cacheData);
+    } catch (error) {
+      console.error('[OverheadLineInspectionPage] Error saving to global cache:', error);
+    }
+  }, []);
+
+  // Check if cached data is still valid (within 5 minutes)
+  const isCacheValid = useCallback((cachedData: any) => {
+    if (!cachedData || !cachedData.lastUpdated) return false;
+    const fiveMinutes = 5 * 60 * 1000; // 5 minutes in milliseconds
+    return (Date.now() - cachedData.lastUpdated) < fiveMinutes;
+  }, []);
+
+  // Initialize with cached data if available
+  const cachedData = loadCachedData();
+  const [totalRecords, setTotalRecords] = useState(
+    cachedData && isCacheValid(cachedData) ? cachedData.totalRecords : 0
+  );
   const [isLoadingPage, setIsLoadingPage] = useState(false);
-  const [currentPageData, setCurrentPageData] = useState<NetworkInspection[]>([]);
-  const [isDataFromCache, setIsDataFromCache] = useState(false);
+  const [currentPageData, setCurrentPageData] = useState<NetworkInspection[]>(
+    cachedData && isCacheValid(cachedData) ? cachedData.currentPageData : []
+  );
+  const [isDataFromCache, setIsDataFromCache] = useState(
+    cachedData && isCacheValid(cachedData)
+  );
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'retrying' | 'error'>('connected');
 
   // Generate cache key for current page and filters
@@ -214,6 +270,172 @@ export default function OverheadLineInspectionPage() {
     };
     return `overheadLineInspections_page_${JSON.stringify(filterParams)}`;
   };
+
+  // Generate cache key for unique feeders
+  const getUniqueFeedersCacheKey = useCallback(() => {
+    const filterParams = {
+      userRole: user?.role,
+      userRegion: user?.region,
+      userDistrict: user?.district,
+      selectedRegion: selectedRegion,
+      selectedDistrict: selectedDistrict,
+    };
+    return `overheadLineInspections_uniqueFeeders_${JSON.stringify(filterParams)}`;
+  }, [user?.role, user?.region, user?.district, selectedRegion, selectedDistrict]);
+
+  // Fetch unique feeders from the database with caching
+  const fetchUniqueFeeders = useCallback(async () => {
+    if (!user) {
+      console.log('[OverheadLineInspectionPage] No user, skipping feeder fetch');
+      return;
+    }
+    
+    setIsLoadingFeeders(true);
+    const cacheKey = getUniqueFeedersCacheKey();
+    
+    try {
+      // Check cache first
+      const cached = await cache.get(cacheKey) as any;
+      if (cached && cached.data && cached.timestamp) {
+        const cacheAge = Date.now() - cached.timestamp;
+        const maxAge = 10 * 60 * 1000; // 10 minutes cache for feeders (they don't change often)
+        
+        if (cacheAge < maxAge) {
+          console.log(`[OverheadLineInspectionPage] Using cached unique feeders (age: ${cacheAge}ms)`);
+          setAllFeeders(cached.data);
+          setIsLoadingFeeders(false);
+          return;
+        } else {
+          console.log(`[OverheadLineInspectionPage] Cache expired (age: ${cacheAge}ms), fetching fresh data`);
+        }
+      }
+      
+      const params = new URLSearchParams();
+      
+      // Note: Role-based filtering is handled by the backend using req.user
+      // We only need to send region/district filters if user has selected them
+      // The backend will apply role-based filters automatically
+      
+      // Apply region/district filters (but NOT feeder filter)
+      if (selectedRegion) {
+        const regionName = regions.find(r => r.id === selectedRegion)?.name;
+        if (regionName) {
+          params.append('region', regionName);
+          console.log('[OverheadLineInspectionPage] Adding region filter:', regionName);
+        }
+      }
+      if (selectedDistrict) {
+        const districtName = districts.find(d => d.id === selectedDistrict)?.name;
+        if (districtName) {
+          params.append('district', districtName);
+          console.log('[OverheadLineInspectionPage] Adding district filter:', districtName);
+        }
+      }
+      
+      // Request unique feeders
+      params.append('uniqueFeeders', 'true');
+      
+      const url = `/api/overheadLineInspections?${params.toString()}`;
+      console.log('[OverheadLineInspectionPage] Fetching unique feeders with URL:', url);
+      console.log('[OverheadLineInspectionPage] User role:', user.role, 'User region:', user.region, 'User district:', user.district);
+      
+      // Use a longer timeout for uniqueFeeders request (60 seconds)
+      // Create a custom fetch with extended timeout
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+      const fullUrl = `${baseUrl}${url}`;
+      
+      // Get token for auth
+      let token = '';
+      try {
+        const { acquireToken } = await import('@/config/azure-ad');
+        token = await acquireToken();
+      } catch (error) {
+        console.warn('[OverheadLineInspectionPage] Failed to acquire token:', error);
+      }
+      
+      // Create AbortController with longer timeout (60 seconds)
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
+      
+      let response;
+      try {
+        const res = await fetch(fullUrl, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token && { Authorization: `Bearer ${token}` }),
+          },
+          signal: controller.signal,
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        
+        response = await res.json();
+      } catch (error) {
+        clearTimeout(timeoutId);
+        if (error.name === 'AbortError') {
+          throw new Error('Request timeout - the query is taking too long. Please try again or use the search feature.');
+        }
+        throw error;
+      }
+      console.log('[OverheadLineInspectionPage] Raw response:', response);
+      console.log('[OverheadLineInspectionPage] Response type:', typeof response);
+      console.log('[OverheadLineInspectionPage] Is array:', Array.isArray(response));
+      
+      // Handle response - backend returns array directly
+      let feeders: string[] = [];
+      if (Array.isArray(response)) {
+        feeders = response;
+      } else if (response && typeof response === 'object') {
+        // In case response is wrapped
+        feeders = response.data || response.feeders || [];
+      }
+      
+      // Filter out empty/null values and sort
+      feeders = feeders.filter(f => f && typeof f === 'string' && f.trim().length > 0);
+      feeders.sort();
+      
+      console.log('[OverheadLineInspectionPage] Processed feeders:', feeders.length, 'unique feeders');
+      console.log('[OverheadLineInspectionPage] Sample feeders:', feeders.slice(0, 5));
+      
+      setAllFeeders(feeders);
+      
+      // Cache the results
+      const cacheData = {
+        data: feeders,
+        timestamp: Date.now()
+      };
+      await cache.set(cacheKey, cacheData, { maxAge: 10 * 60 * 1000 }); // 10 minutes cache
+      console.log(`[OverheadLineInspectionPage] Cached unique feeders with key: ${cacheKey}`);
+      
+      if (feeders.length === 0) {
+        console.warn('[OverheadLineInspectionPage] No feeders found. This might indicate a filtering issue or empty database.');
+      }
+    } catch (error) {
+      console.error('[OverheadLineInspectionPage] Error fetching unique feeders:', error);
+      console.error('[OverheadLineInspectionPage] Error details:', {
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined
+      });
+      
+      // On error, try to use cached data even if expired
+      const cached = await cache.get(cacheKey) as any;
+      if (cached && cached.data) {
+        console.log('[OverheadLineInspectionPage] Using expired cache as fallback due to error');
+        setAllFeeders(cached.data);
+      } else {
+        // On error, set empty array (will be populated on retry or when filters change)
+        setAllFeeders([]);
+      }
+      toast.error('Failed to load all feeders. Please check console for details.');
+    } finally {
+      setIsLoadingFeeders(false);
+    }
+  }, [user, selectedRegion, selectedDistrict, regions, districts, getUniqueFeedersCacheKey]);
 
   // Load data for specific page from server with caching and retry logic
   const loadPageData = useCallback(async (page: number, retryCount = 0) => {
@@ -344,6 +566,15 @@ export default function OverheadLineInspectionPage() {
         
         await cache.set(cacheKey, cacheData, { maxAge: 5 * 60 * 1000 }); // 5 minutes cache
         console.log(`[OverheadLineInspectionPage] Cached page ${page} data`);
+
+        // Save to global cache for navigation persistence
+        saveCachedData({
+          currentPageData: pageData,
+          totalRecords: total,
+          currentPage: page,
+          pageSize: pageSize,
+          lastUpdated: Date.now()
+        });
         
         console.log('[OverheadLineInspectionPage] Loaded page', page, 'with', pageData.length, 'records. Total:', total);
         console.log('[OverheadLineInspectionPage] Pagination info:', {
@@ -394,14 +625,43 @@ export default function OverheadLineInspectionPage() {
           .filter(info => info.key.startsWith('overheadLineInspections_page_'))
           .map(info => info.key);
         
-        for (const key of pageCacheKeys) {
+        // Also clear unique feeders cache when filters change
+        const feederCacheKeys = cacheInfo
+          .filter(info => info.key.startsWith('overheadLineInspections_uniqueFeeders_'))
+          .map(info => info.key);
+        
+        for (const key of [...pageCacheKeys, ...feederCacheKeys]) {
           await cache.delete(key);
         }
-        console.log('[OverheadLineInspectionPage] Cleared page cache, removed', pageCacheKeys.length, 'entries');
+        console.log('[OverheadLineInspectionPage] Cleared page cache, removed', pageCacheKeys.length, 'page entries and', feederCacheKeys.length, 'feeder cache entries');
       } catch (error) {
         console.error('[OverheadLineInspectionPage] Error clearing cache:', error);
       }
     };
+
+    // Check for cached data on component mount and display immediately
+    useEffect(() => {
+      if (!user) return; // Wait for user to be available
+      
+      const cachedData = loadCachedData();
+      if (cachedData && isCacheValid(cachedData) && cachedData.currentPage === currentPage) {
+        console.log('[OverheadLineInspectionPage] Component mounted with cached data for current page, displaying immediately');
+        setCurrentPageData(cachedData.currentPageData);
+        setTotalRecords(cachedData.totalRecords);
+        setIsDataFromCache(true);
+        setIsLoadingPage(false);
+        
+        // Load fresh data in background to ensure it's up to date
+        setTimeout(() => {
+          console.log('[OverheadLineInspectionPage] Loading fresh data in background');
+          loadPageData(currentPage);
+        }, 100);
+      } else {
+        console.log('[OverheadLineInspectionPage] No valid cached data for current page, loading fresh data');
+        // Load data normally if no cache or cache is for different page
+        loadPageData(currentPage);
+      }
+    }, [user]); // Only run when user becomes available
 
     // Load initial data and when page/filters change
     useEffect(() => {
@@ -468,6 +728,13 @@ export default function OverheadLineInspectionPage() {
       clearPageCache(); // Clear cache when filters change
     }, [selectedDate, selectedMonth, selectedRegion, selectedDistrict, selectedFeeder]);
 
+    // Fetch unique feeders when component mounts or when region/district filters change
+    useEffect(() => {
+      if (user) {
+        fetchUniqueFeeders();
+      }
+    }, [user, selectedRegion, selectedDistrict, fetchUniqueFeeders]);
+
     // Reset all filters
     const handleResetFilters = () => {
       setSelectedDate(null);
@@ -477,6 +744,14 @@ export default function OverheadLineInspectionPage() {
       setSelectedFeeder(null);
       setCurrentPage(1); // Reset to first page
       clearPageCache(); // Clear cache when filters are reset
+      
+      // Also clear global cache
+      try {
+        localStorage.removeItem(GLOBAL_CACHE_KEY);
+        console.log('[OverheadLineInspectionPage] Global cache cleared from localStorage');
+      } catch (error) {
+        console.error('[OverheadLineInspectionPage] Error clearing global cache:', error);
+      }
     };
 
   const handleAddInspection = () => {
@@ -911,32 +1186,33 @@ export default function OverheadLineInspectionPage() {
             <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4 w-full sm:w-auto">
               <div className="space-y-2 w-full sm:w-[200px]">
                 <Label>Filter by Feeder Name</Label>
-                <Select
+                <Combobox
+                  options={[
+                    { value: "all-feeders", label: "All Feeders" },
+                    ...(allFeeders.length > 0 
+                      ? allFeeders.map(feeder => ({ value: feeder, label: feeder }))
+                      : // Fallback to current page feeders if API hasn't loaded yet
+                        Array.from(new Set(
+                          currentPageData
+                            .map(inspection => inspection.feederName)
+                            .filter(Boolean)
+                        )).sort().map(feeder => ({ value: feeder, label: feeder }))
+                    )
+                  ]}
                   value={selectedFeeder || "all-feeders"}
                   onValueChange={(value) => {
-                    if (value === "all-feeders") {
+                    if (value === "all-feeders" || value === null) {
                       setSelectedFeeder(null);
                     } else {
                       setSelectedFeeder(value);
                     }
                   }}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="All Feeders" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all-feeders">All Feeders</SelectItem>
-                    {Array.from(new Set(currentPageData
-                      .map(inspection => inspection.feederName)
-                      .filter(Boolean)))
-                      .sort()
-                      .map(feeder => (
-                        <SelectItem key={feeder} value={feeder}>
-                          {feeder}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
+                  placeholder={isLoadingFeeders ? "Loading feeders..." : "All Feeders"}
+                  searchPlaceholder="Search feeders..."
+                  emptyMessage={isLoadingFeeders ? "Loading feeders..." : "No feeders found"}
+                  disabled={isLoadingFeeders}
+                  className="w-full"
+                />
               </div>
               <Button
                 variant="outline"

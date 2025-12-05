@@ -39,7 +39,8 @@ router.options('/login-background', (req, res) => {
     'http://localhost:3000',
     'https://localhost:3000',
     'https://heroic-boba-b98a65.netlify.app',
-    'http://proppvlap01.ecggh.com'
+    'http://proppvlap01.ecggh.com',
+    'https://nms.ecggh.org'
   ];
   
   if (origin && allowedOrigins.includes(origin)) {
@@ -68,7 +69,8 @@ router.get('/login-background', async (req, res) => {
       'http://localhost:3000',
       'https://localhost:3000',
       'https://heroic-boba-b98a65.netlify.app',
-      'http://proppvlap01.ecggh.com'
+      'http://proppvlap01.ecggh.com',
+      'https://nms.ecggh.org'
     ];
     
     if (origin && allowedOrigins.includes(origin)) {

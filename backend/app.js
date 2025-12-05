@@ -74,8 +74,9 @@ const corsOptions = {
     'https://localhost:3000',
     // Netlify domain - hardcoded for now
     'https://heroic-boba-b98a65.netlify.app',
-    // ECG internal domain
-    'http://proppvlap01.ecggh.com'
+    // ECG internal domains
+    'http://proppvlap01.ecggh.com',
+    'https://nms.ecggh.org'
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],

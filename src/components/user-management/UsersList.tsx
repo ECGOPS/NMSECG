@@ -908,11 +908,17 @@ export function UsersList() {
       
       {/* Pending Users Section */}
       {(() => {
-        const pendingUsers = users?.filter(user => user.status === 'pre_registered' || user.role === 'pending') || [];
+        // Filter for pending users: status is 'pre_registered' OR role is 'pending'
+        const pendingUsers = users?.filter(user => {
+          const isPending = user.status === 'pre_registered' || user.role === 'pending';
+          return isPending;
+        }) || [];
+        
         console.log('[UsersList] Pending users section:', {
           totalUsers: users?.length || 0,
           pendingUsersCount: pendingUsers.length,
-          pendingUsers: pendingUsers.map(u => ({ id: u.id, name: u.name, email: u.email, status: u.status, role: u.role }))
+          pendingUsers: pendingUsers.map(u => ({ id: u.id, name: u.name, email: u.email, status: u.status, role: u.role })),
+          allUsersStatusRole: users?.map(u => ({ id: u.id, status: u.status, role: u.role })) || []
         });
         
         return pendingUsers.length > 0 ? (
@@ -941,7 +947,9 @@ export function UsersList() {
                       </Avatar>
                        <div className="min-w-0 flex-1">
                          <span className="font-medium text-sm truncate block"><SafeText content={user.name} /></span>
-                         <span className="text-xs text-gray-500 truncate block"><SafeText content={user.email} /></span>
+                         <span className="text-xs text-gray-500 truncate block">
+                           {user.email && user.email.trim() ? <SafeText content={user.email} /> : <span className="text-gray-400 italic">No email available</span>}
+                         </span>
                       </div>
                     </div>
                     <Button
@@ -1040,7 +1048,9 @@ export function UsersList() {
                             </Avatar>
                              <div className="min-w-0 flex-1">
                                <span className="font-semibold text-sm sm:text-base truncate block"><SafeText content={user.name} /></span>
-                               <span className="text-xs sm:text-sm text-muted-foreground truncate block"><SafeText content={user.email} /></span>
+                               <span className="text-xs sm:text-sm text-muted-foreground truncate block">
+                                 {user.email && user.email.trim() ? <SafeText content={user.email} /> : <span className="text-gray-400 italic">No email available</span>}
+                               </span>
                             </div>
                           </div>
                         </TableCell>

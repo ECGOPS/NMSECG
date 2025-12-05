@@ -548,7 +548,10 @@ export function OverheadLineInspectionsTable({
       setExportType("csv");
       // Allow UI to render the spinner before heavy work
       await new Promise((r) => setTimeout(r, 0));
-    const dataToExport = allInspections || inspections;
+    const dataToExport = allInspections && allInspections.length > 0 ? allInspections : inspections;
+    console.log('[OverheadLineInspectionsTable] Exporting CSV with', dataToExport.length, 'records');
+    console.log('[OverheadLineInspectionsTable] allInspections length:', allInspections?.length || 0);
+    console.log('[OverheadLineInspectionsTable] inspections length:', inspections.length);
     const headers = [
       'Region', 'District', 'Feeder Name', 'Location', 'Voltage Level', 'Reference Pole',
       'Status', 'Date', 'Pole ID', 'Pole Height', 'Pole Type', 'Ground Condition',
@@ -662,8 +665,10 @@ export function OverheadLineInspectionsTable({
       setExportStage('Preparing...');
       // Allow UI to render the spinner before heavy work
       await new Promise((r) => setTimeout(r, 0));
-      const dataToExport = allInspections || inspections;
-      console.log('Data to export:', dataToExport.length, 'inspections');
+      const dataToExport = allInspections && allInspections.length > 0 ? allInspections : inspections;
+      console.log('[OverheadLineInspectionsTable] Exporting Excel with', dataToExport.length, 'records');
+      console.log('[OverheadLineInspectionsTable] allInspections length:', allInspections?.length || 0);
+      console.log('[OverheadLineInspectionsTable] inspections length:', inspections.length);
       
       if (dataToExport.length === 0) {
         toast.error('No inspections to export');
@@ -786,7 +791,15 @@ export function OverheadLineInspectionsTable({
                   <div className="text-right">{inspection.referencePole}</div>
                   <div className="text-muted-foreground">Length (km)</div>
                   <div className="text-right">{feederLength > 0 ? feederLength.toFixed(2) : '-'}</div>
+                  <div className="text-muted-foreground">Location</div>
+                  <div className="text-right break-words">{inspection.location || '-'}</div>
                 </div>
+                {inspection.additionalNotes && (
+                  <div className="mt-3 pt-3 border-t">
+                    <div className="text-xs text-muted-foreground mb-1">Additional Notes</div>
+                    <div className="text-sm break-words">{inspection.additionalNotes}</div>
+                  </div>
+                )}
                 <div className="mt-3 flex flex-wrap items-center gap-2">
                   <Button size="sm" variant="secondary" onClick={() => onView(inspection)}>View</Button>
                   <Button size="sm" variant="outline" onClick={() => exportToPDF(inspection)}>
